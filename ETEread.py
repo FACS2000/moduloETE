@@ -55,6 +55,7 @@ if 'bonification_rules' not in st.session_state:
                 'Estado'
                 ])
 bonification_rules = st.session_state['bonification_rules']
+bonification_rules.index=bonification_rules.index+1
 if 'combination_bonification_rules' not in st.session_state:
         st.session_state['combination_bonification_rules'] = pd.DataFrame(columns=[
                 'Codigo de Producto',
@@ -166,10 +167,10 @@ if registro_regla is not None:
 
             if submitted:
                     if registro_regla=='Regla Simple':
-                            add_bonification_rule(base_product_code, base_product_quantity, bonification_product_code, bonification_quantity, cost, start_date, end_date)
+                            add_bonification_rule(base_product_code, base_product_quantity, bonification_product_code,bonification_product_unit, bonification_quantity, cost, start_date, end_date)
                             
                     elif registro_regla=='Regla Combinada':
-                            add_combination_bonification_rule(base_product_code, base_product_quantity, bonification_product_code, bonification_quantity, cost, start_date, end_date)
+                            add_combination_bonification_rule(base_product_code, base_product_quantity, bonification_product_code,bonification_product_unit, bonification_quantity, cost, start_date, end_date)
 
                     st.success("Regla registrada correctamente!")
 
