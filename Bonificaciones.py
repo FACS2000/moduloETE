@@ -14,8 +14,7 @@ with open(file_path, "rb") as file:
     file_data = file.read()
 if "uploader_key" not in st.session_state:
     st.session_state["uploader_key"] = 1
-if "edit_indices" not in st.session_state:
-    st.session_state["edit_indices"] = 0
+
 if "comb_uploader_key" not in st.session_state:
     st.session_state["comb_uploader_key"] = 1
 
@@ -204,7 +203,7 @@ if registro_regla=='Regla Simple':
 
         st.write(bonification_rules)
 
-        edit_indices = st.selectbox("Seleccione la regla a Modificar", bonification_rules.index, format_func=lambda x: f"Regla {x}", placeholder='Escoja una regla',index=st.session_state['edit_indices'])
+        edit_indices = st.selectbox("Seleccione la regla a Modificar", bonification_rules.index, format_func=lambda x: f"Regla {x}", placeholder='Escoja una regla',index=None)
         if edit_indices!=None:
             with st.form(key="edit_rule_form"):
                 st.write(f"Editando la regla {edit_indices}")
@@ -354,14 +353,12 @@ def apply_combined_bonification_rule2(sales_df):
             if total_base_quantity >= rule['Cantidad de Producto']:
                 sale_dates = group['Emision'].dt.date.unique()
                 for sale_date in sale_dates:
-                    print(sale_date)
-                    print(rule['Fecha Inicio'].date())
-                    print(rule['Fecha Inicio'].date())
+                    
                     if rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date():
                         bonification_cost = rule['Costo']
                         # Distribuir la cantidad total de bonificación entre los productos de bonificación
                         for bonification_product_code in bonification_product_codes:
-                            print(bonification_product_code)
+                            
                             bonification_product_sales = group[group['Cod. Art.'] == bonification_product_code]
                             total_bonification_quantity = bonification_product_sales['Cantidad'].sum()
                             bonification_entry = {
