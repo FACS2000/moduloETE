@@ -14,7 +14,8 @@ with open(file_path, "rb") as file:
     file_data = file.read()
 if "uploader_key" not in st.session_state:
     st.session_state["uploader_key"] = 1
-
+if "edit_indices" not in st.session_state:
+    st.session_state["edit_indices"] = 1
 if "comb_uploader_key" not in st.session_state:
     st.session_state["comb_uploader_key"] = 1
 
