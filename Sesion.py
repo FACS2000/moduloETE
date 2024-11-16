@@ -1,4 +1,4 @@
 import streamlit as st
 
-pg = st.navigation([st.Page("ETEread.py"), st.Page("ETEread copy.py")])
+pg = st.navigation([st.Page("Bonificaciones.py"), st.Page("Descuentos.py")])
 pg.run()
