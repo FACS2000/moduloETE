@@ -8,7 +8,7 @@ submittedTable=None
 uploaded_rules_file =None
 uploaded_combined_rules_file=None
 monthSelect=1
-
+monthFile=None
 if "uploader_key" not in st.session_state:
     st.session_state["uploader_key"] = 1
 
@@ -104,26 +104,28 @@ if uploaded_combined_rules_file is not None:
 
 
 
-def add_bonification_rule(base_product_code, base_product_quantity, bonification_product_code, unit, bonification_quantity, cost, start_date, end_date):
-        global bonification_rules
-        new_rule = pd.DataFrame({
-                'Codigo de Producto': [base_product_code],
-                'Cantidad de Producto': [base_product_quantity],
-                'Codigo de Bonificacion': [bonification_product_code],
-                'Cantidad de Bonificacion': [bonification_quantity],
-                'Costo': [cost],
-                'Fecha Inicio': [pd.to_datetime(start_date)],
-                'Fecha Fin': [pd.to_datetime(end_date)],
-                'Estado': 1
-        })
-        st.session_state['bonification_rules'] = pd.concat([bonification_rules, new_rule], ignore_index=True)
+def add_bonification_rule(base_product_code, base_product_quantity, bonification_product_code, bonification_product_unit, bonification_quantity, cost, start_date, end_date):
+    global bonification_rules
+    new_rule = pd.DataFrame({
+        'Codigo de Producto': [base_product_code],
+        'Cantidad de Producto': [base_product_quantity],
+        'Codigo de Bonificacion': [bonification_product_code],
+        'Unidad de Bonificacion':[bonification_product_unit],
+        'Cantidad de Bonificacion': [bonification_quantity],
+        'Costo': [cost],
+        'Fecha Inicio': [pd.to_datetime(start_date)],
+        'Fecha Fin': [pd.to_datetime(end_date)],
+        'Estado': 1
+    })
+    st.session_state['bonification_rules'] = pd.concat([bonification_rules, new_rule], ignore_index=True)
 
-def add_combination_bonification_rule(base_product_code, base_product_quantity, bonification_product_code, unit, bonification_quantity, cost, start_date, end_date):
+def add_combination_bonification_rule(base_product_code, base_product_quantity, bonification_product_code, bonification_product_unit, bonification_quantity, cost, start_date, end_date):
     global combination_bonification_rules
     new_combination_rule = pd.DataFrame({
         'Codigo de Producto': [base_product_code],
         'Cantidad de Producto': [base_product_quantity],
         'Codigo de Bonificacion': [bonification_product_code],
+        'Unidad de Bonificacion':[bonification_product_unit],
         'Cantidad de Bonificacion': [bonification_quantity],
         'Costo': [cost],
         'Fecha Inicio': [pd.to_datetime(start_date)],  # Convert to datetime
@@ -153,8 +155,9 @@ if registro_regla is not None:
             base_product_code = st.text_input("Código de Producto Base")
             base_product_quantity = st.number_input("Cantidad de Producto Base", min_value=1)
             bonification_product_code = st.text_input("Código de Producto de Bonificación")
+            bonification_product_unit = st.text_input("Unidad de Producto de Bonificación")
             bonification_quantity = st.number_input("Cantidad de Producto de Bonificación", min_value=1)
-            cost = st.number_input("Costoo", min_value=0.0, format="%.2f")
+            cost = st.number_input("Costo", min_value=0.0, format="%.2f")
             start_date = st.date_input("Fecha de Inicio", value=datetime.today())
             end_date = st.date_input("Fecha Final", value=datetime.today())
 
