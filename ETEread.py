@@ -55,7 +55,7 @@ if 'bonification_rules' not in st.session_state:
                 'Estado'
                 ])
 bonification_rules = st.session_state['bonification_rules']
-bonification_rules.index=bonification_rules.index+1
+
 if 'combination_bonification_rules' not in st.session_state:
         st.session_state['combination_bonification_rules'] = pd.DataFrame(columns=[
                 'Codigo de Producto',
@@ -70,16 +70,22 @@ if 'combination_bonification_rules' not in st.session_state:
                 ])
 combination_bonification_rules = st.session_state['combination_bonification_rules']
 
+if 0 in bonification_rules.index:
+    bonification_rules.index=bonification_rules.index+1
+if 0 in combination_bonification_rules.index:
+    combination_bonification_rules.index=combination_bonification_rules.index+1
 if uploaded_rules_file is not None:
+    
     new_rules_df = pd.read_excel(
         uploaded_rules_file,
         dtype={'Codigo de Producto': str, 'Codigo de Bonificacion': str},  # Ensure these are text
     )
-    new_rules_df['Estado'] = 1
+    new_rules_df['Estado'] = 'Activo'
     st.session_state['bonification_rules'] = pd.concat(
         [st.session_state['bonification_rules'], new_rules_df],
         ignore_index=True
     )
+    
     st.success("Reglas de bonificación cargadas correctamente desde el archivo.")
 
     st.session_state["uploader_key"] += 1
@@ -91,11 +97,12 @@ if uploaded_combined_rules_file is not None:
         uploaded_combined_rules_file,
         dtype={'Codigo de Producto': str, 'Codigo de Bonificacion': str},  # Ensure these are text
     )
-    new_combined_rules_df['Estado'] = 1
+    new_combined_rules_df['Estado'] = 'Activo'
     st.session_state['combination_bonification_rules'] = pd.concat(
         [st.session_state['combination_bonification_rules'], new_combined_rules_df],
         ignore_index=True
     )
+    
     st.success("Reglas de bonificación cargadas correctamente desde el archivo.")
 
     st.session_state["comb_uploader_key"] += 1
@@ -116,9 +123,11 @@ def add_bonification_rule(base_product_code, base_product_quantity, bonification
         'Costo': [cost],
         'Fecha Inicio': [pd.to_datetime(start_date)],
         'Fecha Fin': [pd.to_datetime(end_date)],
-        'Estado': 1
+        'Estado': 'Activo'
     })
     st.session_state['bonification_rules'] = pd.concat([bonification_rules, new_rule], ignore_index=True)
+    st.rerun()
+    st.success("Regla registrada correctamente!")
 
 def add_combination_bonification_rule(base_product_code, base_product_quantity, bonification_product_code, bonification_product_unit, bonification_quantity, cost, start_date, end_date):
     global combination_bonification_rules
@@ -131,20 +140,24 @@ def add_combination_bonification_rule(base_product_code, base_product_quantity, 
         'Costo': [cost],
         'Fecha Inicio': [pd.to_datetime(start_date)],  # Convert to datetime
         'Fecha Fin': [pd.to_datetime(end_date)],       # Convert to datetime
-        'Estado': 1
+        'Estado': 'Activo'
     })
     st.session_state['combination_bonification_rules'] = pd.concat([combination_bonification_rules, new_combination_rule], ignore_index=True)
+    st.rerun()
+    st.success("Regla registrada correctamente!")
 
 # Function to delete bonification rules based on indices
 def delete_bonification_rule(indices):
     global bonification_rules
     bonification_rules = bonification_rules.drop(indices).reset_index(drop=True)
     st.session_state['bonification_rules'] = bonification_rules
+    st.rerun()
 
 def delete_combination_bonification_rule(indices):
     global combination_bonification_rules
     combination_bonification_rules = combination_bonification_rules.drop(indices).reset_index(drop=True)
     st.session_state['combination_bonification_rules'] = combination_bonification_rules
+    st.rerun()
 
 
 if registro_regla=='Regla Simple':
@@ -172,7 +185,7 @@ if registro_regla is not None:
                     elif registro_regla=='Regla Combinada':
                             add_combination_bonification_rule(base_product_code, base_product_quantity, bonification_product_code,bonification_product_unit, bonification_quantity, cost, start_date, end_date)
 
-                    st.success("Regla registrada correctamente!")
+                    
 
 # Display the DataFrame with a checkbox to select rows for deletion
 st.subheader("Reglas Registradas")
@@ -185,6 +198,38 @@ if registro_regla=='Regla Simple':
             st.success(f"Regla(s) Eliminadas(s): {', '.join(map(str, delete_indices))}")
 
         st.write(bonification_rules)
+
+        edit_indices = st.selectbox("Seleccione la regla a Modificar", bonification_rules.index, format_func=lambda x: f"Regla {x}", placeholder='Escoja una regla',index=None)
+        if edit_indices!=None:
+            with st.form(key="edit_rule_form"):
+                st.write(f"Editando la regla {edit_indices}")
+
+                base_product_code = st.text_input("Código de Producto Base", bonification_rules.loc[edit_indices, 'Codigo de Producto'])
+                base_product_quantity = st.number_input("Cantidad de Producto Base", value=bonification_rules.loc[edit_indices, 'Cantidad de Producto'], step=1)
+                bonification_product_code = st.text_input("Código de Producto de Bonificación", bonification_rules.loc[edit_indices, 'Codigo de Bonificacion'])
+                bonification_product_unit = st.text_input("Unidad de Producto de Bonificación", bonification_rules.loc[edit_indices, 'Unidad'])
+                bonification_quantity = st.number_input("Cantidad de Producto de Bonificación", value=bonification_rules.loc[edit_indices, 'Cantidad de Bonificacion'], step=1)
+                cost = st.number_input("Costo", value=bonification_rules.loc[edit_indices, 'Costo'], step=0.01)
+                start_date = st.date_input("Fecha de Inicio", bonification_rules.loc[edit_indices, 'Fecha Inicio'])
+                end_date = st.date_input("Fecha Final", bonification_rules.loc[edit_indices, 'Fecha Fin'])
+                estado = st.selectbox("Estado", options=['Activo', 'Inactivo'], index=0 if bonification_rules.loc[edit_indices, 'Estado'] == 'Activo' else 1)
+                
+                submittedEdit = st.form_submit_button("Guardar cambios")
+
+                if submittedEdit:
+                    # Actualizar el DataFrame con los valores editados
+                    bonification_rules.loc[edit_indices, 'Codigo de Producto'] = base_product_code
+                    bonification_rules.loc[edit_indices, 'Cantidad de Producto'] = base_product_quantity
+                    bonification_rules.loc[edit_indices, 'Codigo de Bonificacion'] = bonification_product_code
+                    bonification_rules.loc[edit_indices, 'Unidad'] = bonification_product_unit
+                    bonification_rules.loc[edit_indices, 'Cantidad de Bonificacion'] = bonification_quantity
+                    bonification_rules.loc[edit_indices, 'Costo'] = cost
+                    bonification_rules.loc[edit_indices, 'Fecha Inicio'] = pd.to_datetime(start_date)
+                    bonification_rules.loc[edit_indices, 'Fecha Fin'] = pd.to_datetime(end_date)
+                    bonification_rules.loc[edit_indices, 'Estado'] = estado
+
+                    st.success(f"Regla {edit_indices} actualizada con éxito.")
+
     else:
         st.write("Sin Reglas Registradas.")
 elif registro_regla=='Regla Combinada':
@@ -390,6 +435,7 @@ elif (registro_regla=='Regla Simple' and bonification_rules.empty==False) or (re
     submittedTable = st.button("Mostrar Tabla", disabled=False)
 
 if submittedTable:
+    try:
         with st.spinner("Procesando"):
                 df = pd.read_excel(uploaded_file,dtype={'Pedido': str, 'Cod. Cliente': str,'RUC/DNI': str})
                 if 'Emision' in df.columns:
@@ -434,3 +480,5 @@ if submittedTable:
         with st.spinner("Procesando"):
             sleep(1)
             st.write(unfulfilledBonifications)
+    except:
+        st.write('No se encontraron bonificaciones válidas')
