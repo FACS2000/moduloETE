@@ -9,6 +9,9 @@ uploaded_rules_file =None
 uploaded_combined_rules_file=None
 monthSelect=1
 monthFile=None
+file_path='Formato_bonf_rules.xlsx'
+with open(file_path, "rb") as file:
+    file_data = file.read()
 if "uploader_key" not in st.session_state:
     st.session_state["uploader_key"] = 1
 
@@ -41,6 +44,7 @@ if registro_regla is not None:
 if uploaded_file is None:
         st.write("Suba un archivo de Excel primero para poder continuar.")
 
+st.sidebar.download_button(label='Formato de archivo de reglas de bonificación',data=file_data,file_name='Formato de Reglas Bonif.xlsx')
 # Initialize bonification rules DataFrame in session state
 if 'bonification_rules' not in st.session_state:
         st.session_state['bonification_rules'] = pd.DataFrame(columns=[
@@ -199,7 +203,7 @@ if registro_regla=='Regla Simple':
 
         st.write(bonification_rules)
 
-        edit_indices = st.selectbox("Seleccione la regla a Modificar", bonification_rules.index, format_func=lambda x: f"Regla {x}", placeholder='Escoja una regla',index=None)
+        edit_indices = st.selectbox("Seleccione la regla a Modificar", bonification_rules.index, format_func=lambda x: f"Regla {x}", placeholder='Escoja una regla',index=st.session_state['edit_indices'])
         if edit_indices!=None:
             with st.form(key="edit_rule_form"):
                 st.write(f"Editando la regla {edit_indices}")
@@ -215,20 +219,20 @@ if registro_regla=='Regla Simple':
                 estado = st.selectbox("Estado", options=['Activo', 'Inactivo'], index=0 if bonification_rules.loc[edit_indices, 'Estado'] == 'Activo' else 1)
                 
                 submittedEdit = st.form_submit_button("Guardar cambios")
-
-                if submittedEdit:
-                    # Actualizar el DataFrame con los valores editados
-                    bonification_rules.loc[edit_indices, 'Codigo de Producto'] = base_product_code
-                    bonification_rules.loc[edit_indices, 'Cantidad de Producto'] = base_product_quantity
-                    bonification_rules.loc[edit_indices, 'Codigo de Bonificacion'] = bonification_product_code
-                    bonification_rules.loc[edit_indices, 'Unidad'] = bonification_product_unit
-                    bonification_rules.loc[edit_indices, 'Cantidad de Bonificacion'] = bonification_quantity
-                    bonification_rules.loc[edit_indices, 'Costo'] = cost
-                    bonification_rules.loc[edit_indices, 'Fecha Inicio'] = pd.to_datetime(start_date)
-                    bonification_rules.loc[edit_indices, 'Fecha Fin'] = pd.to_datetime(end_date)
-                    bonification_rules.loc[edit_indices, 'Estado'] = estado
-
-                    st.success(f"Regla {edit_indices} actualizada con éxito.")
+                with st.spinner('Actualizando'):
+                    if submittedEdit:
+                        # Actualizar el DataFrame con los valores editados
+                        bonification_rules.loc[edit_indices, 'Codigo de Producto'] = base_product_code
+                        bonification_rules.loc[edit_indices, 'Cantidad de Producto'] = base_product_quantity
+                        bonification_rules.loc[edit_indices, 'Codigo de Bonificacion'] = bonification_product_code
+                        bonification_rules.loc[edit_indices, 'Unidad'] = bonification_product_unit
+                        bonification_rules.loc[edit_indices, 'Cantidad de Bonificacion'] = bonification_quantity
+                        bonification_rules.loc[edit_indices, 'Costo'] = cost
+                        bonification_rules.loc[edit_indices, 'Fecha Inicio'] = pd.to_datetime(start_date)
+                        bonification_rules.loc[edit_indices, 'Fecha Fin'] = pd.to_datetime(end_date)
+                        bonification_rules.loc[edit_indices, 'Estado'] = estado
+                        
+                        st.success(f"Regla {edit_indices} actualizada con éxito.")
 
     else:
         st.write("Sin Reglas Registradas.")
