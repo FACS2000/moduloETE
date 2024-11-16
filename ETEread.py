@@ -15,7 +15,7 @@ with open(file_path, "rb") as file:
 if "uploader_key" not in st.session_state:
     st.session_state["uploader_key"] = 1
 if "edit_indices" not in st.session_state:
-    st.session_state["edit_indices"] = 1
+    st.session_state["edit_indices"] = 0
 if "comb_uploader_key" not in st.session_state:
     st.session_state["comb_uploader_key"] = 1
 
@@ -32,7 +32,7 @@ monthSelect = st.sidebar.selectbox(
 if monthSelect is not None:
     monthFile = month_dict[monthSelect]
 
-supplierFile= st.sidebar.selectbox('Proveedor',('ETE','4LO','AND','GUR','PPN','VER'),placeholder="Escoja un Proveedor",index=None)
+supplierFile= st.sidebar.selectbox('Proveedor',('ETE','4LO','AND','GUR','PPN','VER','QLP'),placeholder="Escoja un Proveedor",index=None)
 st.title("Gestión de Reglas")
 
 registro_regla=st.selectbox('Regla a Aplicar',('Regla Simple','Regla Combinada'),index=None,placeholder='Escoja la regla a aplicar')
@@ -123,7 +123,7 @@ def add_bonification_rule(base_product_code, base_product_quantity, bonification
         'Codigo de Producto': [base_product_code],
         'Cantidad de Producto': [base_product_quantity],
         'Codigo de Bonificacion': [bonification_product_code],
-        'Unidad de Bonificacion':[bonification_product_unit],
+        'Unidad':[bonification_product_unit],
         'Cantidad de Bonificacion': [bonification_quantity],
         'Costo': [cost],
         'Fecha Inicio': [pd.to_datetime(start_date)],
@@ -140,7 +140,7 @@ def add_combination_bonification_rule(base_product_code, base_product_quantity, 
         'Codigo de Producto': [base_product_code],
         'Cantidad de Producto': [base_product_quantity],
         'Codigo de Bonificacion': [bonification_product_code],
-        'Unidad de Bonificacion':[bonification_product_unit],
+        'Unidad':[bonification_product_unit],
         'Cantidad de Bonificacion': [bonification_quantity],
         'Costo': [cost],
         'Fecha Inicio': [pd.to_datetime(start_date)],  # Convert to datetime
