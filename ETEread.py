@@ -178,7 +178,7 @@ if registro_regla is not None:
 st.subheader("Reglas Registradas")
 if registro_regla=='Regla Simple':
     if not bonification_rules.empty:
-        delete_indices = st.multiselect("Seleccione las reglas a Eliminar", bonification_rules.index, format_func=lambda x: f"Regla {x+1}", placeholder='Escoja una regla')
+        delete_indices = st.multiselect("Seleccione las reglas a Eliminar", bonification_rules.index, format_func=lambda x: f"Regla {x}", placeholder='Escoja una regla')
 
         if st.button("Borrar regla seleccionada"):
             delete_bonification_rule(delete_indices)
@@ -189,7 +189,7 @@ if registro_regla=='Regla Simple':
         st.write("Sin Reglas Registradas.")
 elif registro_regla=='Regla Combinada':
     if not combination_bonification_rules.empty:
-        delete_indices = st.multiselect("Seleccione las reglas a Eliminar", combination_bonification_rules.index, format_func=lambda x: f"Regla {x+1}", placeholder='Escoja una regla')
+        delete_indices = st.multiselect("Seleccione las reglas a Eliminar", combination_bonification_rules.index, format_func=lambda x: f"Regla {x}", placeholder='Escoja una regla')
 
         if st.button("Borrar regla seleccionada"):
             delete_combination_bonification_rule(delete_indices)
