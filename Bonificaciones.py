@@ -32,7 +32,7 @@ if monthSelect is not None:
     monthFile = month_dict[monthSelect]
 
 supplierFile= st.sidebar.selectbox('Proveedor',('ETE','4LO','AND','GUR','PPN','VER','QLP'),placeholder="Escoja un Proveedor",index=None)
-st.title("Gestión de Reglas")
+st.title("Gestión de Reglas (Bomificaciones)")
 
 registro_regla=st.selectbox('Regla a Aplicar',('Regla Simple','Regla Combinada'),index=None,placeholder='Escoja la regla a aplicar')
 if registro_regla is not None:

@@ -24,7 +24,7 @@ if monthSelect is not None:
     monthFile = month_dict[monthSelect]
 
 supplierFile= st.sidebar.selectbox('Proveedor',('ETE','4LO','AND','GUR','PPN','VER','QLP'),placeholder="Escoja un Proveedor",index=None)
-st.title("Gestión de Reglas")
+st.title("Gestión de Reglas (Descuentos)")
 uploaded_rules_file = st.sidebar.file_uploader('Suba archivo de reglas de bonificación (Regla Simple)', type='xlsx',key=st.session_state["uploader_key"])
 
 if 'discount_rules' not in st.session_state:
