@@ -5,58 +5,177 @@ from datetime import datetime
 from time import sleep
 st.set_page_config(layout='wide')
 
-# if "uploader_key" not in st.session_state:
-#     st.session_state["uploader_key"] = 1
+if "uploader_key" not in st.session_state:
+    st.session_state["uploader_key"] = 1
 
-# # File uploader for Excel
-# uploaded_file = st.sidebar.file_uploader('Suba un archivo del Detalle de Venta', type='xlsx')
-# monthFile = st.sidebar.selectbox('Mes', (1,2,3,4,5,6,7,8,9,10,11,12),placeholder="Escoja un Mes",index=None)
-# supplierFile= st.sidebar.selectbox('Proveedor',('ETE','4LO','AND','GUR','PPN','VER'),placeholder="Escoja un Proveedor",index=None)
-# uploaded_rules_file = st.sidebar.file_uploader('Suba archivo de reglas de bonificación', type='xlsx',key=st.session_state["uploader_key"])
+# File uploader for Excel
+uploaded_file = st.sidebar.file_uploader('Suba el archivo de data general', type='xlsx',label_visibility='collapsed')
+if uploaded_file is None:
+        st.write("Suba un archivo de Excel primero para poder continuar.")
+month_dict = {"Enero": 1, "Febrero": 2, "Marzo": 3, "Abril": 4, "Mayo": 5, "Junio": 6, "Julio": 7, "Agosto": 8, "Septiembre": 9, "Octubre": 10, "Noviembre": 11, "Diciembre": 12}
 
-# # If the file is uploaded
-# if uploaded_file is None:
-#         st.write("Suba un archivo de Excel primero para poder continuar.")
+monthSelect = st.sidebar.selectbox(
+    'Mes', 
+    options=list(month_dict.keys()), 
+    format_func=lambda name: name, 
+    placeholder="Escoja un Mes",index=None
+)
+if monthSelect is not None:
+    monthFile = month_dict[monthSelect]
 
-# # Initialize bonification rules DataFrame in session state
-# if 'bonification_rules' not in st.session_state:
-#         st.session_state['bonification_rules'] = pd.DataFrame(columns=[
-#                 'Base_Product_Code',
-#                 'Base_Product_Quantity',
-#                 'Bonification_Product_Code',
-#                 'Bonification_Quantity',
-#                 'Cost',
-#                 'Start_Date',
-#                 'End_Date',
-#                 'Status'
-#                 ])
-# bonification_rules = st.session_state['bonification_rules']
-# if 'combination_bonification_rules' not in st.session_state:
-#         st.session_state['combination_bonification_rules'] = pd.DataFrame(columns=[
-#                 'Base_Product_Code',
-#                 'Base_Product_Quantity',
-#                 'Bonification_Product_Code',
-#                 'Bonification_Quantity',
-#                 'Cost',
-#                 'Start_Date',
-#                 'End_Date',
-#                 'Status'
-#                 ])
-# combination_bonification_rules = st.session_state['combination_bonification_rules']
+supplierFile= st.sidebar.selectbox('Proveedor',('ETE','4LO','AND','GUR','PPN','VER','QLP'),placeholder="Escoja un Proveedor",index=None)
+st.title("Gestión de Reglas")
+uploaded_rules_file = st.sidebar.file_uploader('Suba archivo de reglas de bonificación (Regla Simple)', type='xlsx',key=st.session_state["uploader_key"])
 
-# if uploaded_rules_file is not None:
-#     # Load data into DataFrame and ensure date columns are properly parsed
-#     new_rules_df = pd.read_excel(
-#         uploaded_rules_file,
-#         dtype={'Base_Product_Code': str, 'Bonification_Product_Code': str},  # Ensure these are text
-#     )
+if 'discount_rules' not in st.session_state:
+        st.session_state['discount_rules'] = pd.DataFrame(columns=[
+                'Codigo de Producto',
+                'Descuento de Producto',
+                'Sucursal',
+                'Estado'
+                ])
+discount_rules = st.session_state['discount_rules']
+if 0 in discount_rules.index:
+    discount_rules.index=discount_rules.index+1
 
-#     # Convert dates to only date format (removing time)
+if uploaded_rules_file is not None:
     
+    new_rules_df = pd.read_excel(
+        uploaded_rules_file,
+        dtype={'Codigo de Producto': str},
+    )
+    new_rules_df['Estado'] = 'Activo'
+    st.session_state['discount_rules'] = pd.concat(
+        [st.session_state['discount_rules'], new_rules_df],
+        ignore_index=True
+    )
     
-#     # Add a Status column with value 1
-#     new_rules_df['Status'] = 1
+    st.success("Reglas de descuento cargadas correctamente desde el archivo.")
 
+    st.session_state["uploader_key"] += 1
+    st.rerun()
+    st.write
+
+
+def add_discount_rules(base_product_code, product_discount, branch):
+    global discount_rules
+    new_rule = pd.DataFrame({
+        'Codigo de Producto': [base_product_code],
+        'Descuento de Producto': [product_discount],
+        'Sucursal': [branch],
+        'Estado': 'Activo'
+    })
+    st.session_state['discount_rules'] = pd.concat([discount_rules, new_rule], ignore_index=True)
+    st.rerun()
+    st.success("Regla registrada correctamente!")
+def delete_discount_rules(indices):
+    global discount_rules
+    discount_rules = discount_rules.drop(indices).reset_index(drop=True)
+    st.session_state['discount_rules'] = discount_rules
+    st.rerun()
+
+with st.form("discount_rule_form"):
+    base_product_code = st.text_input("Codigo de Producto")
+    product_discount = st.number_input("Descuento de Producto (%)", min_value=1)
+    branch = st.text_input("Sucursal")
+
+            # Submit button
+    submitted = st.form_submit_button("Agregar Regla")
+    if submitted:
+        add_discount_rules(base_product_code, product_discount, branch)
+st.subheader("Reglas Registradas")
+
+if not discount_rules.empty:
+        delete_indices = st.multiselect("Seleccione las reglas a Eliminar", discount_rules.index, format_func=lambda x: f"Regla {x}", placeholder='Escoja una regla')
+
+        if st.button("Borrar regla seleccionada"):
+            delete_discount_rules(delete_indices)
+            st.success(f"Regla(s) Eliminadas(s): {', '.join(map(str, delete_indices))}")
+
+        st.write(discount_rules)
+
+        edit_indices = st.selectbox("Seleccione la regla a Modificar", discount_rules.index, format_func=lambda x: f"Regla {x}", placeholder='Escoja una regla',index=None)
+        if edit_indices!=None:
+            with st.form(key="edit_rule_form"):
+                st.write(f"Editando la regla {edit_indices}")
+
+                base_product_code = st.text_input("Codigo de Producto", discount_rules.loc[edit_indices, 'Codigo de Producto'])
+                product_discount = st.number_input("Descuento de Producto (%)", value=discount_rules.loc[edit_indices, 'Descuento de Producto'], step=1)
+                branch = st.text_input("Sucursal", discount_rules.loc[edit_indices, 'Sucursal'])                
+                estado = st.selectbox("Estado", options=['Activo', 'Inactivo'], index=0 if discount_rules.loc[edit_indices, 'Estado'] == 'Activo' else 1)
+                
+                submittedEdit = st.form_submit_button("Guardar cambios")
+                with st.spinner('Actualizando'):
+                    if submittedEdit:
+                        # Actualizar el DataFrame con los valores editados
+                        discount_rules.loc[edit_indices, 'Codigo de Producto'] = base_product_code
+                        discount_rules.loc[edit_indices, 'Descuento de Producto'] = product_discount
+                        discount_rules.loc[edit_indices, 'Sucursal'] = branch
+                        discount_rules.loc[edit_indices, 'Estado'] = estado
+                        
+                        st.success(f"Regla {edit_indices} actualizada con éxito.")
+else:
+    st.write("Sin Reglas Registradas.")
+
+
+def apply_discount_rules(discount_df):
+    discount_summary = []
+    onlyDiscounts = discount_df[discount_df['Descuento'] != 0]
+
+    for sale, index in onlyDiscounts:
+        for index, rule in discount_rules:
+            base_product_sales = group[group['Cod. Art.'] == rule['Codigo de Producto']]
+            if (sale['Descuento']/sale['Total Bruto']) != rule['Descuento de Producto']:
+                discount_entry = {
+                            'Nro Documento': nro_doc,
+                            'Codigo de Producto': rule['Codigo de Producto'],
+                            'Codigo de Bonificacion': rule['Codigo de Bonificacion'],
+                            'Quantity': total_bonification_quantity,
+                            'Total': total_bonification_quantity * bonification_cost,
+                            'Costo': bonification_cost,
+                            'Regla': f"{rule['Codigo de Bonificacion']} (Compra {rule['Cantidad de Producto']} de {rule['Codigo de Producto']}, de Regalo {rule['Cantidad de Bonificacion']} de {rule['Codigo de Bonificacion']})"
+                        }
+    for nro_doc, group in discount_df.groupby('Pedido'):
+        for index, rule in discount_rules.sort_values(by='Cantidad de Producto', ascending=False).iterrows():
+            sale_dates = group['Emision'].dt.date.unique()
+            for sale_date in sale_dates:
+                if rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date():
+                    base_product_sales = group[group['Cod. Art.'] == rule['Codigo de Producto']]
+                    total_base_quantity = base_product_sales['Cantidad'].sum()
+                    bonification_multiplier = total_base_quantity // rule['Cantidad de Producto']
+
+                    if total_base_quantity >= rule['Cantidad de Producto'] and bonification_multiplier > 0:
+                        bonification_product_sales = group[group['Cod. Art.'] == rule['Codigo de Bonificacion']]
+                        total_bonification_quantity = bonification_product_sales['Cantidad'].sum()
+                        bonification_cost = rule['Costo']
+
+                        bonification_entry = {
+                            'Nro Documento': nro_doc,
+                            'Codigo de Producto': rule['Codigo de Producto'],
+                            'Codigo de Bonificacion': rule['Codigo de Bonificacion'],
+                            'Quantity': total_bonification_quantity,
+                            'Total': total_bonification_quantity * bonification_cost,
+                            'Costo': bonification_cost,
+                            'Regla': f"{rule['Codigo de Bonificacion']} (Compra {rule['Cantidad de Producto']} de {rule['Codigo de Producto']}, de Regalo {rule['Cantidad de Bonificacion']} de {rule['Codigo de Bonificacion']})"
+                        }
+
+                        discount_summary.append(bonification_entry)
+                        
+
+    bonification_summary_df = pd.DataFrame(discount_summary)
+
+    total_bonification_per_rule = bonification_summary_df.groupby(
+        ['Codigo de Producto', 'Codigo de Bonificacion', 'Regla', 'Costo']
+    ).agg(
+        Cantidad=('Quantity', 'sum'),
+        Total=('Total', 'sum'),
+    ).reset_index()
+
+    total_bonification_per_rule['Costo'] = total_bonification_per_rule['Costo'].apply(lambda x: f"S/ {x:.2f}")
+
+    total_bonification_per_rule['Total'] = total_bonification_per_rule['Total'].apply(lambda x: f"S/ {x:.2f}")
+
+    return total_bonification_per_rule
 #     # Append the new data to the existing bonification_rules in session state
 #     st.session_state['bonification_rules'] = pd.concat(
 #         [st.session_state['bonification_rules'], new_rules_df],
