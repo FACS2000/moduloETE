@@ -32,9 +32,10 @@ if monthSelect is not None:
     monthFile = month_dict[monthSelect]
 
 supplierFile= st.sidebar.selectbox('Proveedor',('ETE','4LO','AND','GUR','PPN','VER','QLP'),placeholder="Escoja un Proveedor",index=None)
-st.title("Gestión de Reglas (Bomificaciones)")
-
-registro_regla=st.selectbox('Regla a Aplicar',('Regla Simple','Regla Combinada'),index=None,placeholder='Escoja la regla a aplicar')
+st.title("Gestión de Reglas (Bonificaciones)")
+colA,colB,ColC=st.columns(3)
+with colA:
+    registro_regla=st.selectbox('Regla a Aplicar',('Regla Simple','Regla Combinada'),index=None,placeholder='Escoja la regla a aplicar')
 if registro_regla is not None:
     if registro_regla=='Regla Simple':
         uploaded_rules_file = st.sidebar.file_uploader('Suba archivo de reglas de bonificación (Regla Simple)', type='xlsx',key=st.session_state["uploader_key"])
@@ -42,7 +43,7 @@ if registro_regla is not None:
         uploaded_combined_rules_file = st.sidebar.file_uploader('Suba archivo de reglas de bonificación (Regla Combinada)', type='xlsx',key=st.session_state["comb_uploader_key"])
 # If the file is uploaded
 if uploaded_file is None:
-        st.write("Suba un archivo de Excel primero para poder continuar.")
+        st.warning("◀ Suba un archivo de Excel con la data de ventas para poder continuar.")
 
 st.sidebar.download_button(label='Descargar Formato de archivo de reglas de bonificación',data=file_data,file_name='Formato de Reglas Bonif.xlsx')
 # Initialize bonification rules DataFrame in session state
@@ -75,7 +76,7 @@ if 'combination_bonification_rules' not in st.session_state:
                 'Estado'
                 ])
 combination_bonification_rules = st.session_state['combination_bonification_rules']
-
+#if ('Codigo de Producto','Cantidad de Producto','Codigo de Bonificacion','Unidad','Cantidad de Bonificacion','Costo','Fecha Inicio','Fecha Fin','Sucursal'):
 if 0 in bonification_rules.index:
     bonification_rules.index=bonification_rules.index+1
 if 0 in combination_bonification_rules.index:
@@ -86,17 +87,36 @@ if uploaded_rules_file is not None:
         uploaded_rules_file,
         dtype={'Codigo de Producto': str, 'Codigo de Bonificacion': str},  # Ensure these are text
     )
-    new_rules_df['Estado'] = 'Activo'
-    st.session_state['bonification_rules'] = pd.concat(
-        [st.session_state['bonification_rules'], new_rules_df],
-        ignore_index=True
-    )
-    
-    st.success("Reglas de bonificación cargadas correctamente desde el archivo.")
+    required_columns = [
+        'Codigo de Producto',
+        'Cantidad de Producto',
+        'Codigo de Bonificacion',
+        'Unidad',
+        'Cantidad de Bonificacion',
+        'Costo',
+        'Fecha Inicio',
+        'Fecha Fin',
+        'Sucursal'
+    ]
+    if set(new_rules_df.columns) == set(required_columns):
+        # Add a default 'Estado' column
+        new_rules_df['Estado'] = 'Activo'
+        
+        # Append the new rules to the session state DataFrame
+        st.session_state['bonification_rules'] = pd.concat(
+            [st.session_state['bonification_rules'], new_rules_df],
+            ignore_index=True
+        )
+        
+        st.success("Reglas de bonificación cargadas correctamente desde el archivo.")
+        st.session_state["uploader_key"] += 1
+        st.rerun()
+    else:
+        # Show an error message if columns are missing or extra
+        st.error(f"El archivo cargado no contiene las columnas esperadas: {required_columns}. Descargue el formato para ingresar los datos correctos")
 
-    st.session_state["uploader_key"] += 1
-    st.rerun()
-    st.write
+    # Increment the uploader key and rerun
+    
 
 if uploaded_combined_rules_file is not None:
     new_combined_rules_df = pd.read_excel(
@@ -173,16 +193,20 @@ if registro_regla=='Regla Simple':
 elif registro_regla=='Regla Combinada':
         st.subheader("Regla Combinada")
 if registro_regla is not None:
-    with st.form("bonification_rule_form"):
-            base_product_code = st.text_input("Código de Producto Base")
-            base_product_quantity = st.number_input("Cantidad de Producto Base", min_value=1)
-            bonification_product_code = st.text_input("Código de Producto de Bonificación")
-            bonification_product_unit = st.text_input("Unidad de Producto de Bonificación")
-            bonification_quantity = st.number_input("Cantidad de Producto de Bonificación", min_value=1)
-            cost = st.number_input("Costo", min_value=0.0, format="%.2f")
-            start_date = st.date_input("Fecha de Inicio", value=datetime.today())
-            end_date = st.date_input("Fecha Final", value=datetime.today())
-            branch = st.number_input("Sucursal", min_value=1)
+    with st.form("bonification_rule_form",border=False):
+            col1, col2 ,col3= st.columns(3)
+            with col1:
+                base_product_code = st.text_input("Código de Producto Base")
+                bonification_product_code = st.text_input("Código de Producto de Bonificación")
+                bonification_product_unit = st.text_input("Unidad de Producto de Bonificación")
+                start_date = st.date_input("Fecha de Inicio", value=datetime.today())
+                branch = st.number_input("Sucursal", min_value=1)
+            with col2:
+                base_product_quantity = st.number_input("Cantidad de Producto Base", min_value=1)                
+                bonification_quantity = st.number_input("Cantidad de Producto de Bonificación", min_value=1)            
+                cost = st.number_input("Costo", min_value=0.0, format="%.2f")
+                end_date = st.date_input("Fecha Final", value=datetime.today())
+            
 
             # Submit button
             submitted = st.form_submit_button("Agregar Regla")
@@ -205,7 +229,6 @@ if registro_regla=='Regla Simple':
         if st.button("Borrar regla seleccionada"):
             delete_bonification_rule(delete_indices)
             st.success(f"Regla(s) Eliminadas(s): {', '.join(map(str, delete_indices))}")
-
         st.write(bonification_rules)
 
         edit_indices = st.selectbox("Seleccione la regla a Modificar", bonification_rules.index, format_func=lambda x: f"Regla {x}", placeholder='Escoja una regla',index=None)
@@ -453,7 +476,44 @@ def apply_combined_bonification_rule2(sales_df):
     total_bonification_per_rule['Total'] = total_bonification_per_rule['Total'].apply(lambda x: f"S/ {x:.2f}")
 
     return total_bonification_per_rule
-############# Fuera de Regla ####################
+############# Fuera de Regla/Mecanica (Simple)####################
+# def get_unfulfilled_bonifications_v2(sales_df):
+#     # Run the bonification rule application to get all fulfilled rules
+#     fulfilled_rules_df = apply_bonification_rules_per_sale2(sales_df)
+
+#     # Extract records of bonification products where Total Bruto = 0
+#     unfulfilled_records = []
+
+#     for nro_doc, group in sales_df.groupby('Pedido'):
+#         for index, rule in bonification_rules.iterrows():
+#             sale_dates = group['Emision'].dt.date.unique()
+
+#             for sale_date in sale_dates:
+#                 if rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date():
+#                     # Base products and bonification products
+#                     base_product_sales = group[group['Cod. Art.'] == rule['Codigo de Producto']]
+#                     bonification_product_sales = group[
+#                         (group['Cod. Art.'] == rule['Codigo de Bonificacion']) & (group['Total Bruto'] == 0)
+#                     ]
+
+#                     total_base_quantity = base_product_sales['Cantidad'].sum()
+
+#                     # Check if it does NOT meet the bonification rule but has a bonification product
+#                     if total_base_quantity < rule['Cantidad de Producto'] and not bonification_product_sales.empty:
+#                         for _, bonification_row in bonification_product_sales.iterrows():
+#                             unfulfilled_records.append({
+#                                 'Nro Documento': nro_doc,
+#                                 'Codigo de Producto': rule['Codigo de Producto'],
+#                                 'Codigo de Bonificacion': bonification_row['Cod. Art.'],
+#                                 'Cantidad Bonificada': bonification_row['Cantidad'],
+#                                 'Total Bruto': bonification_row['Total Bruto'],
+#                                 'Cantidad en Mecanica': rule['Cantidad de Producto'],
+#                                 'Cantidad en Data': total_base_quantity
+#                             })
+
+#     unfulfilled_records_df = pd.DataFrame(unfulfilled_records)
+#     return unfulfilled_records_df
+
 def get_unfulfilled_bonifications_v2(sales_df):
     # Run the bonification rule application to get all fulfilled rules
     fulfilled_rules_df = apply_bonification_rules_per_sale2(sales_df)
@@ -480,6 +540,7 @@ def get_unfulfilled_bonifications_v2(sales_df):
                         for _, bonification_row in bonification_product_sales.iterrows():
                             unfulfilled_records.append({
                                 'Nro Documento': nro_doc,
+                                'Sucursal': bonification_row['Sucursal'],  # Include Sucursal
                                 'Codigo de Producto': rule['Codigo de Producto'],
                                 'Codigo de Bonificacion': bonification_row['Cod. Art.'],
                                 'Cantidad Bonificada': bonification_row['Cantidad'],
@@ -489,7 +550,10 @@ def get_unfulfilled_bonifications_v2(sales_df):
                             })
 
     unfulfilled_records_df = pd.DataFrame(unfulfilled_records)
+    unfulfilled_records_df = unfulfilled_records_df.sort_values(by='Sucursal').reset_index(drop=True)
+
     return unfulfilled_records_df
+
 
 if uploaded_file is None or monthFile is None or supplierFile is None or registro_regla is None:
 
@@ -511,14 +575,14 @@ if submittedTable:
                 # # Drop unnecessary columns
                 # df_cutColumns = df_dropNull.drop(['TD', 'Cod. Ruteo', 'RUC/DNI'], axis=1)
 
-                # Filter by 'Proveedor' = 'ETE'
+                # Filter by 'Proveedor'
                 dfProvider = df_dropNull[df_dropNull['Proveedor'] == supplierFile]
 
                 # Filter by the selected month in 'Emision'
                 month_rows = dfProvider[dfProvider['Emision'].dt.month == monthFile]
 
                 # Display the filtered DataFrame
-                st.subheader(f"Detalle de Venta del Mes de {monthSelect}")
+                st.subheader(f"Detalle de Venta del Mes de {monthSelect} ")
 
                 formatedRows=month_rows.copy()
 
@@ -535,14 +599,14 @@ if submittedTable:
         elif registro_regla=='Regla Combinada':
             bonificationTable = apply_combined_bonification_rule2(month_rows)
             unfulfilledBonifications = get_unfulfilled_bonifications(month_rows)
-        st.title(f"Resumen de Bonificaciones: {registro_regla}")
+        st.title(f"Resumen de Bonificaciones por Mecánica: {registro_regla}")
         with st.spinner("Procesando"):
-            sleep(1)
+
             st.write(bonificationTable)
         
-        st.title(f"Bonificaciones sin Regla: {registro_regla}")
+        st.title(f"Bonificaciones fuera de Mecánica: {registro_regla}")
         with st.spinner("Procesando"):
-            sleep(1)
+
             st.write(unfulfilledBonifications)
     except:
         st.write('No se encontraron bonificaciones válidas')
