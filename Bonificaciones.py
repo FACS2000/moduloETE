@@ -9,7 +9,7 @@ uploaded_rules_file =None
 uploaded_combined_rules_file=None
 monthSelect=1
 monthFile=None
-file_path='Formato_bonf_rules.xlsx'
+file_path='Formato de Reglas Bonif.xlsx'
 with open(file_path, "rb") as file:
     file_data = file.read()
 if "uploader_key" not in st.session_state:
@@ -53,6 +53,7 @@ if 'bonification_rules' not in st.session_state:
                 'Cantidad de Producto',
                 'Codigo de Bonificacion',
                 'Unidad',
+                'Factor',
                 'Cantidad de Bonificacion',
                 'Costo',
                 'Fecha Inicio',
@@ -68,6 +69,7 @@ if 'combination_bonification_rules' not in st.session_state:
                 'Cantidad de Producto',
                 'Codigo de Bonificacion',
                 'Unidad',
+                'Factor',
                 'Cantidad de Bonificacion',
                 'Costo',
                 'Fecha Inicio',
@@ -77,10 +79,10 @@ if 'combination_bonification_rules' not in st.session_state:
                 ])
 combination_bonification_rules = st.session_state['combination_bonification_rules']
 #if ('Codigo de Producto','Cantidad de Producto','Codigo de Bonificacion','Unidad','Cantidad de Bonificacion','Costo','Fecha Inicio','Fecha Fin','Sucursal'):
-if 0 in bonification_rules.index:
-    bonification_rules.index=bonification_rules.index+1
-if 0 in combination_bonification_rules.index:
-    combination_bonification_rules.index=combination_bonification_rules.index+1
+if 0 in bonification_rules.index: bonification_rules.index=bonification_rules.index+1
+if 0 in combination_bonification_rules.index: combination_bonification_rules.index=combination_bonification_rules.index+1
+
+
 if uploaded_rules_file is not None:
     
     new_rules_df = pd.read_excel(
@@ -92,6 +94,7 @@ if uploaded_rules_file is not None:
         'Cantidad de Producto',
         'Codigo de Bonificacion',
         'Unidad',
+        'Factor',
         'Cantidad de Bonificacion',
         'Costo',
         'Fecha Inicio',
@@ -138,13 +141,14 @@ if uploaded_combined_rules_file is not None:
 
 
 
-def add_bonification_rule(base_product_code, base_product_quantity, bonification_product_code, bonification_product_unit, bonification_quantity, cost, start_date, end_date, branch):
+def add_bonification_rule(base_product_code, base_product_quantity, bonification_product_code, bonification_product_unit,factor, bonification_quantity, cost, start_date, end_date, branch):
     global bonification_rules
     new_rule = pd.DataFrame({
         'Codigo de Producto': [base_product_code],
         'Cantidad de Producto': [base_product_quantity],
         'Codigo de Bonificacion': [bonification_product_code],
         'Unidad':[bonification_product_unit],
+        'Factor':[factor],
         'Cantidad de Bonificacion': [bonification_quantity],
         'Costo': [cost],
         'Fecha Inicio': [pd.to_datetime(start_date)],
@@ -156,13 +160,14 @@ def add_bonification_rule(base_product_code, base_product_quantity, bonification
     st.rerun()
     st.success("Regla registrada correctamente!")
 
-def add_combination_bonification_rule(base_product_code, base_product_quantity, bonification_product_code, bonification_product_unit, bonification_quantity, cost, start_date, end_date, branch):
+def add_combination_bonification_rule(base_product_code, base_product_quantity, bonification_product_code, bonification_product_unit,factor, bonification_quantity, cost, start_date, end_date, branch):
     global combination_bonification_rules
     new_combination_rule = pd.DataFrame({
         'Codigo de Producto': [base_product_code],
         'Cantidad de Producto': [base_product_quantity],
         'Codigo de Bonificacion': [bonification_product_code],
         'Unidad':[bonification_product_unit],
+        'Factor':[factor],
         'Cantidad de Bonificacion': [bonification_quantity],
         'Costo': [cost],
         'Fecha Inicio': [pd.to_datetime(start_date)],  # Convert to datetime
@@ -195,138 +200,52 @@ elif registro_regla=='Regla Combinada':
 if registro_regla is not None:
     with st.form("bonification_rule_form",border=False):
             col1, col2 ,col3= st.columns(3)
+            col11, col21 ,col31= st.columns(3)
             with col1:
                 base_product_code = st.text_input("Código de Producto Base")
                 bonification_product_code = st.text_input("Código de Producto de Bonificación")
-                bonification_product_unit = st.text_input("Unidad de Producto de Bonificación")
-                start_date = st.date_input("Fecha de Inicio", value=datetime.today())
-                branch = st.number_input("Sucursal", min_value=1)
+                
             with col2:
                 base_product_quantity = st.number_input("Cantidad de Producto Base", min_value=1)                
                 bonification_quantity = st.number_input("Cantidad de Producto de Bonificación", min_value=1)            
+                
+            with col11:
+                bonification_product_unit = st.text_input("Unidad de Producto de Bonificación")
+                start_date = st.date_input("Fecha de Inicio", value=datetime.today())
+                
+            with col21:            
                 cost = st.number_input("Costo", min_value=0.0, format="%.2f")
                 end_date = st.date_input("Fecha Final", value=datetime.today())
-            
-
+            with col31:
+                factor= st.number_input("Factor", min_value=0)
+                branch = st.number_input("Sucursal", min_value=0)
             # Submit button
             submitted = st.form_submit_button("Agregar Regla")
 
             if submitted:
                     if registro_regla=='Regla Simple':
-                            add_bonification_rule(base_product_code, base_product_quantity, bonification_product_code,bonification_product_unit, bonification_quantity, cost, start_date, end_date, branch)
+                            add_bonification_rule(base_product_code, base_product_quantity, bonification_product_code,bonification_product_unit,factor, bonification_quantity, cost, start_date, end_date, branch)
                             
                     elif registro_regla=='Regla Combinada':
-                            add_combination_bonification_rule(base_product_code, base_product_quantity, bonification_product_code,bonification_product_unit, bonification_quantity, cost, start_date, end_date, branch)
+                            add_combination_bonification_rule(base_product_code, base_product_quantity, bonification_product_code,bonification_product_unit,factor, bonification_quantity, cost, start_date, end_date, branch)
 
-                    
 
-# Display the DataFrame with a checkbox to select rows for deletion
 st.subheader("Reglas Registradas")
 if registro_regla=='Regla Simple':
     if not bonification_rules.empty:
-        delete_indices = st.multiselect("Seleccione las reglas a Eliminar", bonification_rules.index, format_func=lambda x: f"Regla {x}", placeholder='Escoja una regla')
-
-        if st.button("Borrar regla seleccionada"):
-            delete_bonification_rule(delete_indices)
-            st.success(f"Regla(s) Eliminadas(s): {', '.join(map(str, delete_indices))}")
-        st.write(bonification_rules)
-
-        edit_indices = st.selectbox("Seleccione la regla a Modificar", bonification_rules.index, format_func=lambda x: f"Regla {x}", placeholder='Escoja una regla',index=None)
-        if edit_indices!=None:
-            with st.form(key="edit_rule_form"):
-                st.write(f"Editando la regla {edit_indices}")
-
-                base_product_code = st.text_input("Código de Producto Base", bonification_rules.loc[edit_indices, 'Codigo de Producto'])
-                base_product_quantity = st.number_input("Cantidad de Producto Base", value=bonification_rules.loc[edit_indices, 'Cantidad de Producto'], step=1)
-                bonification_product_code = st.text_input("Código de Producto de Bonificación", bonification_rules.loc[edit_indices, 'Codigo de Bonificacion'])
-                bonification_product_unit = st.text_input("Unidad de Producto de Bonificación", bonification_rules.loc[edit_indices, 'Unidad'])
-                bonification_quantity = st.number_input("Cantidad de Producto de Bonificación", value=bonification_rules.loc[edit_indices, 'Cantidad de Bonificacion'], step=1)
-                cost = st.number_input("Costo", value=bonification_rules.loc[edit_indices, 'Costo'], step=0.01)
-                start_date = st.date_input("Fecha de Inicio", bonification_rules.loc[edit_indices, 'Fecha Inicio'])
-                end_date = st.date_input("Fecha Final", bonification_rules.loc[edit_indices, 'Fecha Fin'])
-                branch = st.number_input("Sucursal", bonification_rules.loc[edit_indices, 'Sucursal'])
-                estado = st.selectbox("Estado", options=['Activo', 'Inactivo'], index=0 if bonification_rules.loc[edit_indices, 'Estado'] == 'Activo' else 1)
-                
-                submittedEdit = st.form_submit_button("Guardar cambios")
-                with st.spinner('Actualizando'):
-                    if submittedEdit:
-                        # Actualizar el DataFrame con los valores editados
-                        bonification_rules.loc[edit_indices, 'Codigo de Producto'] = base_product_code
-                        bonification_rules.loc[edit_indices, 'Cantidad de Producto'] = base_product_quantity
-                        bonification_rules.loc[edit_indices, 'Codigo de Bonificacion'] = bonification_product_code
-                        bonification_rules.loc[edit_indices, 'Unidad'] = bonification_product_unit
-                        bonification_rules.loc[edit_indices, 'Cantidad de Bonificacion'] = bonification_quantity
-                        bonification_rules.loc[edit_indices, 'Costo'] = cost
-                        bonification_rules.loc[edit_indices, 'Fecha Inicio'] = pd.to_datetime(start_date)
-                        bonification_rules.loc[edit_indices, 'Fecha Fin'] = pd.to_datetime(end_date)
-                        bonification_rules.loc[edit_indices, 'Sucursal'] = branch
-                        bonification_rules.loc[edit_indices, 'Estado'] = estado
-                        
-                        st.success(f"Regla {edit_indices} actualizada con éxito.")
-
+        bonification_rules = st.data_editor(bonification_rules,num_rows='dynamic',use_container_width=True)
     else:
-        st.write("Sin Reglas Registradas.")
+        st.warning("Sin Reglas Registradas.")
+
+
+
 elif registro_regla=='Regla Combinada':
     if not combination_bonification_rules.empty:
-        delete_indices = st.multiselect("Seleccione las reglas a Eliminar", combination_bonification_rules.index, format_func=lambda x: f"Regla {x}", placeholder='Escoja una regla')
-
-        if st.button("Borrar regla seleccionada"):
-            delete_combination_bonification_rule(delete_indices)
-            st.success(f"Regla(s) Eliminadas(s): {', '.join(map(str, delete_indices))}")
-
-        st.write(combination_bonification_rules)
+        edited_df_combined = st.data_editor(combination_bonification_rules,num_rows='dynamic',use_container_width=True)
     else:
-        st.write("Sin Reglas Registradas.")
+        st.warning("Sin Reglas Registradas.")
 
-############## REGLA SIMPLE #####################
-
-# def apply_bonification_rules_per_sale2(sales_df):
-#     bonification_summary = []
-
-#     for nro_doc, group in sales_df.groupby('Pedido'):
-#         applied_rules = []
-
-#         for index, rule in bonification_rules.sort_values(by='Cantidad de Producto', ascending=False).iterrows():
-#             sale_dates = group['Emision'].dt.date.unique()
-#             for sale_date in sale_dates:
-#                 if rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date():
-#                     base_product_sales = group[group['Cod. Art.'] == rule['Codigo de Producto']]
-#                     total_base_quantity = base_product_sales['Cantidad'].sum()
-#                     bonification_multiplier = total_base_quantity // rule['Cantidad de Producto']
-
-#                     if total_base_quantity >= rule['Cantidad de Producto'] and bonification_multiplier > 0 and rule['Codigo de Bonificacion'] not in applied_rules:
-#                         bonification_product_sales = group[group['Cod. Art.'] == rule['Codigo de Bonificacion']]
-#                         total_bonification_quantity = bonification_product_sales['Cantidad'].sum()
-#                         bonification_cost = rule['Costo']
-
-#                         bonification_entry = {
-#                             'Nro Documento': nro_doc,
-#                             'Codigo de Producto': rule['Codigo de Producto'],
-#                             'Codigo de Bonificacion': rule['Codigo de Bonificacion'],
-#                             'Quantity': total_bonification_quantity,
-#                             'Total': total_bonification_quantity * bonification_cost,
-#                             'Costo': bonification_cost,
-#                             'Regla': f"{rule['Codigo de Bonificacion']} (Compra {rule['Cantidad de Producto']} de {rule['Codigo de Producto']}, de Regalo {rule['Cantidad de Bonificacion']} de {rule['Codigo de Bonificacion']})"
-#                         }
-
-#                         bonification_summary.append(bonification_entry)
-#                         applied_rules.append(rule['Codigo de Bonificacion'])
-
-#     bonification_summary_df = pd.DataFrame(bonification_summary)
-
-#     total_bonification_per_rule = bonification_summary_df.groupby(
-#         ['Codigo de Producto', 'Codigo de Bonificacion', 'Regla', 'Costo']
-#     ).agg(
-#         Cantidad=('Quantity', 'sum'),
-#         Total=('Total', 'sum'),
-#     ).reset_index()
-
-#     total_bonification_per_rule['Costo'] = total_bonification_per_rule['Costo'].apply(lambda x: f"S/ {x:.2f}")
-
-#     total_bonification_per_rule['Total'] = total_bonification_per_rule['Total'].apply(lambda x: f"S/ {x:.2f}")
-
-#     return total_bonification_per_rule
-
+#REGLA SIMPLE#
 def apply_bonification_rules_per_sale2(sales_df):
     bonification_summary = []
 
@@ -336,10 +255,7 @@ def apply_bonification_rules_per_sale2(sales_df):
         for index, rule in bonification_rules.sort_values(by='Cantidad de Producto', ascending=False).iterrows():
             sale_dates = group['Emision'].dt.date.unique()
             for sale_date in sale_dates:
-                if (
-                    rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date() and
-                    rule['Sucursal'] in group['Sucursal'].unique()  # Ensure Sucursal matches
-                ):
+                if (rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date() and rule['Sucursal'] in group['Sucursal'].unique()):
                     base_product_sales = group[group['Cod. Art.'] == rule['Codigo de Producto']]
                     total_base_quantity = base_product_sales['Cantidad'].sum()
                     bonification_multiplier = total_base_quantity // rule['Cantidad de Producto']
@@ -348,6 +264,7 @@ def apply_bonification_rules_per_sale2(sales_df):
                         bonification_product_sales = group[group['Cod. Art.'] == rule['Codigo de Bonificacion']]
                         total_bonification_quantity = bonification_product_sales['Cantidad'].sum()
                         bonification_cost = rule['Costo']
+                        factor = rule['Factor']
 
                         bonification_entry = {
                             'Sucursal': rule['Sucursal'],  # Include Sucursal in the summary
@@ -355,9 +272,10 @@ def apply_bonification_rules_per_sale2(sales_df):
                             'Codigo de Producto': rule['Codigo de Producto'],
                             'Codigo de Bonificacion': rule['Codigo de Bonificacion'],
                             'Quantity': total_bonification_quantity,
-                            'Total': total_bonification_quantity * bonification_cost,
+                            'Total': (total_bonification_quantity * bonification_cost)/factor,
                             'Costo': bonification_cost,
-                            'Regla': f"{rule['Codigo de Bonificacion']} (Compra {rule['Cantidad de Producto']} de {rule['Codigo de Producto']}, de Regalo {rule['Cantidad de Bonificacion']} de {rule['Codigo de Bonificacion']})"
+                            'Mecanica': f"{rule['Cantidad de Producto']} de {rule['Codigo de Producto']}, + {rule['Cantidad de Bonificacion']} de {rule['Codigo de Bonificacion']}",
+                            'Factor': factor
                         }
 
                         bonification_summary.append(bonification_entry)
@@ -366,7 +284,7 @@ def apply_bonification_rules_per_sale2(sales_df):
     bonification_summary_df = pd.DataFrame(bonification_summary)
 
     total_bonification_per_rule = bonification_summary_df.groupby(
-        ['Sucursal', 'Codigo de Producto', 'Codigo de Bonificacion', 'Regla', 'Costo']
+        ['Sucursal', 'Codigo de Producto', 'Codigo de Bonificacion', 'Mecanica', 'Costo','Factor']
     ).agg(
         Cantidad=('Quantity', 'sum'),
         Total=('Total', 'sum'),
@@ -379,7 +297,180 @@ def apply_bonification_rules_per_sale2(sales_df):
     total_bonification_per_rule = total_bonification_per_rule.sort_values(by='Sucursal', ascending=True).reset_index(drop=True)
 
     return total_bonification_per_rule
+############# Fuera de Regla/Mecanica (Simple)####################
 
+def get_unfulfilled_bonifications_v2(sales_df):
+    
+
+    # Extract records of bonification products where Total Bruto = 0
+    unfulfilled_records = []
+    applied_rules = set()  # Track processed (Nro Documento, Codigo de Bonificacion)
+
+    for nro_doc, group in sales_df.groupby('Pedido'):
+        total_bruto_sum = group['Total Bruto'].sum()
+        
+        for index, rule in bonification_rules.sort_values(by='Cantidad de Producto', ascending=True).iterrows():
+            sale_dates = group['Emision'].dt.date.unique()
+            
+            for sale_date in sale_dates:
+                if ((nro_doc, rule['Codigo de Bonificacion']) in applied_rules):
+                    # Skip this rule if it's already applied or skipped for the same Nro Documento and Bonificacion
+                    continue
+
+                if (rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date() and 
+                    rule['Sucursal'] in group['Sucursal'].unique()):
+                    
+                    # Base products and bonification products
+                    base_product_sales = group[group['Cod. Art.'] == rule['Codigo de Producto']]
+                    bonification_product_sales = group[
+                        (group['Cod. Art.'] == rule['Codigo de Bonificacion']) & (group['Total Bruto'] == 0)
+                    ]
+                    total_base_quantity = base_product_sales['Cantidad'].sum()
+                    bonification_product_code = rule['Codigo de Bonificacion']
+
+                    # If total_base_quantity is 0, add a minimal entry without comparison
+                    if total_base_quantity == 0 and total_bruto_sum ==0:
+                        for _, bonification_row in bonification_product_sales.iterrows():
+                            unfulfilled_records_entry = {
+                                'Nro Documento': nro_doc,
+                                'Sucursal': bonification_row['Sucursal'],  # Include Sucursal
+                                'Cantidad Vendida': total_base_quantity,
+                                'Cod. Bonificacion': bonification_row['Cod. Art.'],
+                                'Cantidad Bonificada': bonification_row['Cantidad'],
+                                # Still include the mechanic's quantity
+                            }
+                            unfulfilled_records.append(unfulfilled_records_entry)
+
+                    # If base quantity is insufficient but there is a bonification product
+                    elif total_base_quantity < rule['Cantidad de Producto'] and not bonification_product_sales.empty:
+                        for _, bonification_row in bonification_product_sales.iterrows():
+                            if (nro_doc, bonification_product_code) not in applied_rules:
+                                unfulfilled_records_entry = {
+                                    'Nro Documento': nro_doc,
+                                    'Sucursal': bonification_row['Sucursal'],  # Include Sucursal
+                                    'Cod. Producto': rule['Codigo de Producto'],
+                                    'Cantidad Vendida': total_base_quantity,
+                                    'Cod. Bonificacion': bonification_row['Cod. Art.'],
+                                    'Cantidad Bonificada': bonification_row['Cantidad'],                                    
+                                    'Mecanica': f"{rule['Cantidad de Producto']} de {rule['Codigo de Producto']} + {rule['Cantidad de Bonificacion']} de {rule['Codigo de Bonificacion']}"
+                                }
+                                unfulfilled_records.append(unfulfilled_records_entry)
+
+                    # Mark this `Nro Documento` and `Codigo de Bonificacion` as processed
+                    applied_rules.add((nro_doc, bonification_product_code))
+
+
+    unfulfilled_records_df = pd.DataFrame(unfulfilled_records)
+    unfulfilled_records_df = unfulfilled_records_df.sort_values(by='Sucursal').reset_index(drop=True)
+
+    return unfulfilled_records_df
+#####################Detalle de Reglas fuera de mecanica######################
+# def get_unfulfilled_bonifications_table_v2(sales_df):
+#     unfulfilled_records = []
+#     for nro_doc, group in sales_df.groupby('Pedido'):
+#         applied_rules = []
+#         for index, rule in bonification_rules.iterrows():
+#             sale_dates = group['Emision'].dt.date.unique()
+
+#             for sale_date in sale_dates:
+#                 if (rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date() and rule['Sucursal'] in group['Sucursal'].unique()):
+
+#                     base_product_sales = group[group['Cod. Art.'] == rule['Codigo de Producto']]
+#                     bonification_product_sales = group[
+#                         (group['Cod. Art.'] == rule['Codigo de Bonificacion']) & (group['Total Bruto'] == 0)
+#                     ]
+#                     bonification_product_code=rule['Codigo de Bonificacion']
+#                     total_base_quantity = base_product_sales['Cantidad'].sum()
+
+#                     # Check if it does NOT meet the bonification rule but has a bonification product
+#                     if total_base_quantity < rule['Cantidad de Producto'] and not bonification_product_sales.empty:
+#                         for _, bonification_row in bonification_product_sales.iterrows():
+
+#                             unfulfilled_records_entry={
+#                                 'Nro Documento': nro_doc,
+#                                 'Sucursal': bonification_row['Sucursal'],  # Include Sucursal
+#                                 'Codigo de Producto': rule['Codigo de Producto'],
+#                                 'Codigo de Bonificacion': bonification_row['Cod. Art.'],
+#                                 'Cantidad Bonificada': bonification_row['Cantidad'],
+#                                 'Cantidad en Mecanica': rule['Cantidad de Producto'],
+#                                 'Cantidad en Data': total_base_quantity,
+#                                 'Mecanica': f"{rule['Cantidad de Producto']} de {rule['Codigo de Producto']} + {rule['Cantidad de Bonificacion']} de {rule['Codigo de Bonificacion']}"
+#                             }
+#                             if (nro_doc, bonification_product_code) not in applied_rules:
+#                                 unfulfilled_records.append(unfulfilled_records_entry)
+#                                 applied_rules.append((nro_doc, bonification_product_code))
+
+#     unfulfilled_records_df = pd.DataFrame(unfulfilled_records)
+#     unfulfilled_records_df = unfulfilled_records_df.sort_values(by='Sucursal').reset_index(drop=True)
+
+#     return unfulfilled_records_df
+def get_unfulfilled_bonifications_table_v2(unfulfilled_bonifications_df):
+    # Group by 'Codigo de Bonificacion' and calculate the total quantity
+    summary_df = unfulfilled_bonifications_df.groupby('Cod. Bonificacion').agg(
+        Total_Bonificada=('Cantidad Bonificada', 'sum'),
+
+        
+    ).reset_index()
+
+    # Optionally, you can sort the summary by 'Total_Bonificada' in descending order
+    summary_df = summary_df.sort_values(by='Total_Bonificada', ascending=False).reset_index(drop=True)
+
+    return summary_df
+
+############# REGLA COMBINADA ###################
+
+def apply_combined_bonification_rule2(sales_df):
+    bonification_summary = []
+
+    for nro_doc, group in sales_df.groupby('Pedido'):
+        applied_rules = []
+
+        for index, rule in combination_bonification_rules.iterrows():
+            # Dividir los códigos de productos base y bonificación en listas
+            base_product_codes = rule['Codigo de Producto'].split(',')
+            bonification_product_codes = rule['Codigo de Bonificacion'].split(',')
+            total_base_quantity = group[group['Cod. Art.'].isin(base_product_codes)]['Cantidad'].sum()
+            if total_base_quantity >= rule['Cantidad de Producto']:
+                sale_dates = group['Emision'].dt.date.unique()
+                for sale_date in sale_dates:
+                    
+                    if rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date():
+                        bonification_cost = rule['Costo']
+                        # Distribuir la cantidad total de bonificación entre los productos de bonificación
+                        for bonification_product_code in bonification_product_codes:
+                            
+                            bonification_product_sales = group[group['Cod. Art.'] == bonification_product_code]
+                            total_bonification_quantity = bonification_product_sales['Cantidad'].sum()
+                            bonification_entry = {
+                                'Nro Documento': nro_doc,
+                                'Codigo de Producto': ','.join(base_product_codes),
+                                'Codigo de Bonificacion': bonification_product_code,
+                                'Quantity': total_bonification_quantity,
+                                'Total': total_bonification_quantity * bonification_cost,
+                                'Costo': bonification_cost,
+                                'Regla': f"{rule['Cantidad de Producto']} de {' y/o '.join(base_product_codes)} + {rule['Cantidad de Bonificacion']} de {bonification_product_code}"
+                            }
+
+                            # Agregar solo si aún no se ha aplicado esta combinación en este documento
+                            if (nro_doc, bonification_product_code) not in applied_rules:
+                                bonification_summary.append(bonification_entry)
+                                applied_rules.append((nro_doc, bonification_product_code))
+    
+    # Convertir el resumen de bonificaciones en un DataFrame
+    bonification_summary_df = pd.DataFrame(bonification_summary)
+
+    # Agregar totales de cantidad y valor por regla
+    total_bonification_per_rule = bonification_summary_df.groupby(
+        ['Codigo de Producto', 'Codigo de Bonificacion', 'Regla', 'Costo']
+    ).agg(
+        Cantidad=('Quantity', 'sum'),
+        Total=('Total', 'sum'),
+    ).reset_index()
+    total_bonification_per_rule['Costo'] = total_bonification_per_rule['Costo'].apply(lambda x: f"S/ {x:.2f}")
+
+    total_bonification_per_rule['Total'] = total_bonification_per_rule['Total'].apply(lambda x: f"S/ {x:.2f}")
+
+    return total_bonification_per_rule
 
 ############# Fuera de Regla ####################
 def get_unfulfilled_bonifications(sales_df):
@@ -422,148 +513,20 @@ def get_unfulfilled_bonifications(sales_df):
     unfulfilled_records_df = pd.DataFrame(unfulfilled_records)
     return unfulfilled_records_df
 
-############# REGLA COMBINADA ###################
 
-def apply_combined_bonification_rule2(sales_df):
-    bonification_summary = []
 
-    for nro_doc, group in sales_df.groupby('Pedido'):
-        applied_rules = []
-
-        for index, rule in combination_bonification_rules.iterrows():
-            # Dividir los códigos de productos base y bonificación en listas
-            base_product_codes = rule['Codigo de Producto'].split(',')
-            bonification_product_codes = rule['Codigo de Bonificacion'].split(',')
-            total_base_quantity = group[group['Cod. Art.'].isin(base_product_codes)]['Cantidad'].sum()
-            if total_base_quantity >= rule['Cantidad de Producto']:
-                sale_dates = group['Emision'].dt.date.unique()
-                for sale_date in sale_dates:
-                    
-                    if rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date():
-                        bonification_cost = rule['Costo']
-                        # Distribuir la cantidad total de bonificación entre los productos de bonificación
-                        for bonification_product_code in bonification_product_codes:
-                            
-                            bonification_product_sales = group[group['Cod. Art.'] == bonification_product_code]
-                            total_bonification_quantity = bonification_product_sales['Cantidad'].sum()
-                            bonification_entry = {
-                                'Nro Documento': nro_doc,
-                                'Codigo de Producto': ','.join(base_product_codes),
-                                'Codigo de Bonificacion': bonification_product_code,
-                                'Quantity': total_bonification_quantity,
-                                'Total': total_bonification_quantity * bonification_cost,
-                                'Costo': bonification_cost,
-                                'Regla': f"{bonification_product_code} (Compra {rule['Cantidad de Producto']} de {', '.join(base_product_codes)}, de Regalo {rule['Cantidad de Bonificacion']} de {bonification_product_code})"
-                            }
-
-                            # Agregar solo si aún no se ha aplicado esta combinación en este documento
-                            if (nro_doc, bonification_product_code) not in applied_rules:
-                                bonification_summary.append(bonification_entry)
-                                applied_rules.append((nro_doc, bonification_product_code))
-    
-    # Convertir el resumen de bonificaciones en un DataFrame
-    bonification_summary_df = pd.DataFrame(bonification_summary)
-
-    # Agregar totales de cantidad y valor por regla
-    total_bonification_per_rule = bonification_summary_df.groupby(
-        ['Codigo de Producto', 'Codigo de Bonificacion', 'Regla', 'Costo']
-    ).agg(
-        Cantidad=('Quantity', 'sum'),
-        Total=('Total', 'sum'),
-    ).reset_index()
-    total_bonification_per_rule['Costo'] = total_bonification_per_rule['Costo'].apply(lambda x: f"S/ {x:.2f}")
-
-    total_bonification_per_rule['Total'] = total_bonification_per_rule['Total'].apply(lambda x: f"S/ {x:.2f}")
-
-    return total_bonification_per_rule
-############# Fuera de Regla/Mecanica (Simple)####################
-# def get_unfulfilled_bonifications_v2(sales_df):
-#     # Run the bonification rule application to get all fulfilled rules
-#     fulfilled_rules_df = apply_bonification_rules_per_sale2(sales_df)
-
-#     # Extract records of bonification products where Total Bruto = 0
-#     unfulfilled_records = []
-
-#     for nro_doc, group in sales_df.groupby('Pedido'):
-#         for index, rule in bonification_rules.iterrows():
-#             sale_dates = group['Emision'].dt.date.unique()
-
-#             for sale_date in sale_dates:
-#                 if rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date():
-#                     # Base products and bonification products
-#                     base_product_sales = group[group['Cod. Art.'] == rule['Codigo de Producto']]
-#                     bonification_product_sales = group[
-#                         (group['Cod. Art.'] == rule['Codigo de Bonificacion']) & (group['Total Bruto'] == 0)
-#                     ]
-
-#                     total_base_quantity = base_product_sales['Cantidad'].sum()
-
-#                     # Check if it does NOT meet the bonification rule but has a bonification product
-#                     if total_base_quantity < rule['Cantidad de Producto'] and not bonification_product_sales.empty:
-#                         for _, bonification_row in bonification_product_sales.iterrows():
-#                             unfulfilled_records.append({
-#                                 'Nro Documento': nro_doc,
-#                                 'Codigo de Producto': rule['Codigo de Producto'],
-#                                 'Codigo de Bonificacion': bonification_row['Cod. Art.'],
-#                                 'Cantidad Bonificada': bonification_row['Cantidad'],
-#                                 'Total Bruto': bonification_row['Total Bruto'],
-#                                 'Cantidad en Mecanica': rule['Cantidad de Producto'],
-#                                 'Cantidad en Data': total_base_quantity
-#                             })
-
-#     unfulfilled_records_df = pd.DataFrame(unfulfilled_records)
-#     return unfulfilled_records_df
-
-def get_unfulfilled_bonifications_v2(sales_df):
-    # Run the bonification rule application to get all fulfilled rules
-    fulfilled_rules_df = apply_bonification_rules_per_sale2(sales_df)
-
-    # Extract records of bonification products where Total Bruto = 0
-    unfulfilled_records = []
-
-    for nro_doc, group in sales_df.groupby('Pedido'):
-        for index, rule in bonification_rules.iterrows():
-            sale_dates = group['Emision'].dt.date.unique()
-
-            for sale_date in sale_dates:
-                if rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date():
-                    # Base products and bonification products
-                    base_product_sales = group[group['Cod. Art.'] == rule['Codigo de Producto']]
-                    bonification_product_sales = group[
-                        (group['Cod. Art.'] == rule['Codigo de Bonificacion']) & (group['Total Bruto'] == 0)
-                    ]
-
-                    total_base_quantity = base_product_sales['Cantidad'].sum()
-
-                    # Check if it does NOT meet the bonification rule but has a bonification product
-                    if total_base_quantity < rule['Cantidad de Producto'] and not bonification_product_sales.empty:
-                        for _, bonification_row in bonification_product_sales.iterrows():
-                            unfulfilled_records.append({
-                                'Nro Documento': nro_doc,
-                                'Sucursal': bonification_row['Sucursal'],  # Include Sucursal
-                                'Codigo de Producto': rule['Codigo de Producto'],
-                                'Codigo de Bonificacion': bonification_row['Cod. Art.'],
-                                'Cantidad Bonificada': bonification_row['Cantidad'],
-                                'Total Bruto': bonification_row['Total Bruto'],
-                                'Cantidad en Mecanica': rule['Cantidad de Producto'],
-                                'Cantidad en Data': total_base_quantity
-                            })
-
-    unfulfilled_records_df = pd.DataFrame(unfulfilled_records)
-    unfulfilled_records_df = unfulfilled_records_df.sort_values(by='Sucursal').reset_index(drop=True)
-
-    return unfulfilled_records_df
 
 
 if uploaded_file is None or monthFile is None or supplierFile is None or registro_regla is None:
-
+    
     submittedTable = st.button("Mostrar Tabla", disabled=True)
 
 elif (registro_regla=='Regla Simple' and bonification_rules.empty==False) or (registro_regla=='Regla Combinada' and combination_bonification_rules.empty==False):
     submittedTable = st.button("Mostrar Tabla", disabled=False)
 
+
 if submittedTable:
-    try:
+#    try:
         with st.spinner("Procesando"):
                 df = pd.read_excel(uploaded_file,dtype={'Pedido': str, 'Cod. Cliente': str,'RUC/DNI': str})
                 if 'Emision' in df.columns:
@@ -571,10 +534,6 @@ if submittedTable:
 
                 # Clean the DataFrame by removing rows where 'Tipo Pedido' is NaN
                 df_dropNull = df.dropna(subset=['Tipo Pedido'])
-
-                # # Drop unnecessary columns
-                # df_cutColumns = df_dropNull.drop(['TD', 'Cod. Ruteo', 'RUC/DNI'], axis=1)
-
                 # Filter by 'Proveedor'
                 dfProvider = df_dropNull[df_dropNull['Proveedor'] == supplierFile]
 
@@ -593,20 +552,22 @@ if submittedTable:
                 formatedRows['Descuento'] = formatedRows['Descuento'].apply(lambda x: f"S/ {x:.2f}")
 
                 st.write(formatedRows)
-        if registro_regla=='Regla Simple':
-            bonificationTable = apply_bonification_rules_per_sale2(month_rows)
-            unfulfilledBonifications = get_unfulfilled_bonifications_v2(month_rows)
-        elif registro_regla=='Regla Combinada':
-            bonificationTable = apply_combined_bonification_rule2(month_rows)
-            unfulfilledBonifications = get_unfulfilled_bonifications(month_rows)
-        st.title(f"Resumen de Bonificaciones por Mecánica: {registro_regla}")
-        with st.spinner("Procesando"):
+                if registro_regla=='Regla Simple':
+                    bonificationTable = apply_bonification_rules_per_sale2(month_rows)
+                    
+                    unfulfilledBonifications = get_unfulfilled_bonifications_v2(month_rows)
+                    unfulfilledBonifications_table = Table = get_unfulfilled_bonifications_table_v2(unfulfilledBonifications)
+                elif registro_regla=='Regla Combinada':
+                    bonificationTable = apply_combined_bonification_rule2(month_rows)
+                    unfulfilledBonifications = get_unfulfilled_bonifications(month_rows)
+                
+                st.title(f"Resumen de Bonificaciones por Mecánica: {registro_regla}")
+                st.write(bonificationTable)
 
-            st.write(bonificationTable)
-        
-        st.title(f"Bonificaciones fuera de Mecánica: {registro_regla}")
-        with st.spinner("Procesando"):
+                st.title(f"Bonificaciones fuera de Mecánica: {registro_regla}")
+                st.write(unfulfilledBonifications)
+                st.write(unfulfilledBonifications_table)
+    # except:
+    #     st.write('No se encontraron bonificaciones válidas')
 
-            st.write(unfulfilledBonifications)
-    except:
-        st.write('No se encontraron bonificaciones válidas')
+
