@@ -31,7 +31,7 @@ monthSelect = st.sidebar.selectbox(
 if monthSelect is not None:
     monthFile = month_dict[monthSelect]
 
-supplierFile= st.sidebar.selectbox('Proveedor',('ETE','4LO','AND','GUR','PPN','VER','QLP','TCM','PFA','ALT','ADA','BDF','QLP','QSZ','COL','PFA','ALI','NPU','SAL','K&M','SQL','SAN','ZAI',
+supplierFile= st.sidebar.selectbox('Proveedor',('AND','ETE','4LO','GUR','PPN','VER','QLP','TCM','PFA','ALT','ADA','BDF','QLP','QSZ','COL','PFA','ALI','NPU','SAL','K&M','SQL','SAN','ZAI',
 'ZUR',
 'NES',
 'UNI',
