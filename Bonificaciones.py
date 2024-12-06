@@ -543,14 +543,15 @@ elif (registro_regla=='Regla Simple' and bonification_rules.empty==False) or (re
 
 
 if submittedTable:
-#    try:
+    try:
         with st.spinner("Procesando"):
                 df = pd.read_excel(uploaded_file,dtype={'Pedido': str, 'Cod. Cliente': str,'RUC/DNI': str})
                 if 'Emision' in df.columns:
                         df['Emision'] = pd.to_datetime(df['Emision'], errors='coerce')  # Convert to datetime format
 
                 # Clean the DataFrame by removing rows where 'Tipo Pedido' is NaN
-                df_dropNull = df.dropna(subset=['Tipo Pedido'])
+                if 'Tipo Pedido' in df.columns:
+                    df_dropNull = df.dropna(subset=['Tipo Pedido'])
                 # Filter by 'Proveedor'
                 dfProvider = df_dropNull[df_dropNull['Proveedor'] == supplierFile]
 
@@ -584,7 +585,7 @@ if submittedTable:
                 st.title(f"Bonificaciones fuera de Mecánica: {registro_regla}")
                 st.write(unfulfilledBonifications)
                 st.write(unfulfilledBonifications_table)
-    # except:
-    #     st.write('No se encontraron bonificaciones válidas')
+    except:
+        st.write('No se encontraron bonificaciones válidas')
 
 
