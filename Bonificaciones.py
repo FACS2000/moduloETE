@@ -456,7 +456,7 @@ if submittedTable:
                 formatedRows['P Unitario'] = formatedRows['P Unitario'].apply(lambda x: f"S/ {x:.2f}")
                 formatedRows['Total'] = formatedRows['Total'].apply(lambda x: f"S/ {x:.2f}")
                 formatedRows['Total'] = formatedRows['Total'].apply(lambda x: f"S/ {x:.2f}")
-                formatedRows['Descuento'] = formatedRows['Descuento'].apply(lambda x: f"S/ {x:.2f}")
+                formatedRows['Dcto'] = formatedRows['Dcto'].apply(lambda x: f"S/ {x:.2f}")
 
                 st.write(formatedRows)
                 if st.session_state.rule_type_active=='Regla Simple':
