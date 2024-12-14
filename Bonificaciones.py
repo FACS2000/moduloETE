@@ -257,12 +257,12 @@ def apply_bonification_rules_per_sale_simple(sales_df):
 ############# Fuera de Regla/Mecanica (Simple)####################
 
 def get_unfulfilled_bonifications_simple(sales_df):
-    # Extract records of bonification products where Total Bruto = 0
+    # Extract records of bonification products where Total = 0
     unfulfilled_records = []
     applied_rules = set()  # Track processed
 
     for nro_doc, group in sales_df.groupby('Nro Doc'):
-        total_bruto_sum = group['Total Bruto'].sum()
+        total_bruto_sum = group['Total'].sum()
         
         for index, rule in st.session_state.bonification_rules.sort_values(by='Cantidad de Producto', ascending=True).iterrows():
             sale_dates = group['Fecha'].dt.date.unique()
@@ -275,7 +275,7 @@ def get_unfulfilled_bonifications_simple(sales_df):
                     # Base products and bonification products
                     base_product_sales = group[group['Cod. Art.'] == rule['Codigo de Producto']]
                     bonification_product_sales = group[
-                        (group['Cod. Art.'] == rule['Codigo de Bonificacion']) & (group['Total Bruto'] == 0)
+                        (group['Cod. Art.'] == rule['Codigo de Bonificacion']) & (group['Total'] == 0)
                     ]
                     total_base_quantity = base_product_sales['Cantidad'].sum()
                     bonification_product_code = rule['Codigo de Bonificacion']
@@ -393,7 +393,7 @@ def get_unfulfilled_bonifications_comb(sales_df):
     # Iterate over each sale document
     for nro_doc, group in sales_df.groupby('Nro Doc'):
 
-        # Track bonification product entries with Total Bruto = 0
+        # Track bonification product entries with Total = 0
         for index, rule in st.session_state.combination_bonification_rules.iterrows():
             # Check if the sale is within the rule's date range
             sale_dates = group['Fecha'].dt.date.unique()
@@ -403,7 +403,7 @@ def get_unfulfilled_bonifications_comb(sales_df):
                     # Filter for base products and bonification products in the sale
                     base_product_sales = group[group['Cod. Art.'].isin(rule['Codigo de Producto'].split(','))]
                     bonification_product_sales = group[
-                        (group['Cod. Art.'].isin(rule['Codigo de Bonificacion'].split(','))) & (group['Total Bruto'] == 0)
+                        (group['Cod. Art.'].isin(rule['Codigo de Bonificacion'].split(','))) & (group['Total'] == 0)
                     ]
 
                     # Calculate the total base quantity in this sale
@@ -453,8 +453,8 @@ if submittedTable:
                 formatedRows=month_rows.copy()
 
                 formatedRows['Fecha'] = formatedRows['Fecha'].dt.strftime('%Y-%m-%d')
-                formatedRows['P. Unitario'] = formatedRows['P. Unitario'].apply(lambda x: f"S/ {x:.2f}")
-                formatedRows['Total Bruto'] = formatedRows['Total Bruto'].apply(lambda x: f"S/ {x:.2f}")
+                formatedRows['P Unitario'] = formatedRows['P. Unitario'].apply(lambda x: f"S/ {x:.2f}")
+                formatedRows['Total'] = formatedRows['Total'].apply(lambda x: f"S/ {x:.2f}")
                 formatedRows['Total'] = formatedRows['Total'].apply(lambda x: f"S/ {x:.2f}")
                 formatedRows['Descuento'] = formatedRows['Descuento'].apply(lambda x: f"S/ {x:.2f}")
 
