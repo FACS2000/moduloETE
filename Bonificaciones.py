@@ -11,9 +11,12 @@ uploaded_combined_rules_file=None
 monthSelect=1
 monthFile=None
 file_path='Formato de Reglas Bonif.xlsx'
-
+file_path_c='Formato de Reglas Combinadas.xlsx'
 with open(file_path, "rb") as file:
     file_data = file.read()
+with open(file_path_c, "rb") as file:
+    file_data_c = file.read()
+
 if "uploader_key" not in st.session_state:
     st.session_state["uploader_key"] = 1
 
@@ -21,6 +24,8 @@ if "comb_uploader_key" not in st.session_state:
     st.session_state["comb_uploader_key"] = 1
 if "rule_type_active" not in st.session_state:
     st.session_state.rule_type_active = None
+if "file_name_bonf" not in st.session_state:
+    st.session_state.file_name_bonf = 'Formato de Reglas Bonif.xlsx'
 if 'bonification_rules' not in st.session_state:
         st.session_state.bonification_rules = pd.DataFrame(columns=[
                 'Codigo de Producto',
@@ -62,7 +67,7 @@ monthSelect = st.sidebar.selectbox(
 if monthSelect is not None:
     monthFile = month_dict[monthSelect]
 
-supplierFile= st.sidebar.selectbox('Proveedor',('AND','ETE','4LO','GUR','PPN','VER','QLP','TCM','PFA','ALT','ADA','BDF','QLP','QSZ','COL','PFA','ALI','NPU','SAL','K&M','SQL','SAN','ZAI',
+supplierFile= st.sidebar.selectbox('Proveedor',('AND','ETE','4LO','GUR','PPN','VER','QLP','TCM','PFA','ALT','ADA','BDF','QSZ','COL','ALI','NPU','SAL','K&M','SQL','SAN','ZAI',
 'ZUR','NES','UNI','PRY','UNS','FIN','MOL','RSA','COR','COP','GLO','JHO','CDP'),placeholder="Escoja un Proveedor",index=None)
 
 st.title("Gestión de Reglas (Bonificaciones)")
@@ -71,14 +76,18 @@ with colA:
     st.session_state.rule_type_active=st.selectbox('Regla a Aplicar',('Regla Simple','Regla Combinada'),index=None,placeholder='Escoja la regla a aplicar')
 if st.session_state.rule_type_active is not None:
     if st.session_state.rule_type_active=='Regla Simple':
+        st.session_state.file_name_bonf='Formato de Reglas Bonif.xlsx'
         uploaded_rules_file = st.sidebar.file_uploader('Suba archivo de reglas de bonificación (Regla Simple)', type='xlsx',key=st.session_state["uploader_key"])
+        st.sidebar.download_button(label=f'Descargar Formato: {st.session_state.rule_type_active}',data=file_data,file_name=st.session_state.file_name_bonf,type='primary')
+
     elif st.session_state.rule_type_active=='Regla Combinada':
+        st.session_state.file_name_bonf='Formato de Reglas Combinadas.xlsx'
         uploaded_combined_rules_file = st.sidebar.file_uploader('Suba archivo de reglas de bonificación (Regla Combinada)', type='xlsx',key=st.session_state["comb_uploader_key"])
+        st.sidebar.download_button(label=f'Descargar Formato: {st.session_state.rule_type_active}',data=file_data_c,file_name=st.session_state.file_name_bonf,type='primary')
+
 # If the file is uploaded
 if uploaded_file is None:
         st.warning("◀ Suba un archivo de Excel con la data de ventas para poder continuar.")
-if st.session_state.rule_type_active is not None:
-    st.sidebar.download_button(label=f'Descargar Formato: {st.session_state.rule_type_active}',data=file_data,file_name='Formato de Reglas Bonif.xlsx',type='primary')
 
 
 if uploaded_rules_file is not None:
@@ -147,8 +156,8 @@ if uploaded_combined_rules_file is not None:
         # Show an error message if columns are missing or extra
         st.error(f"El archivo cargado no contiene las columnas esperadas: {difference_columns}. Descargue el formato para ingresar los datos correctos")
 
-
-st.subheader(st.session_state.rule_type_active)
+if st.session_state.rule_type_active is not None:
+    st.subheader(st.session_state.rule_type_active)
 st.subheader("Gestor de Reglas")
 if st.session_state.rule_type_active=='Regla Simple':
     st.session_state.bonification_rules=st.data_editor(
@@ -306,7 +315,7 @@ def get_unfulfilled_bonifications_simple(sales_df):
 def get_unfulfilled_bonifications_table_simple(unfulfilled_bonifications_df):
     # Group by 'Codigo de Bonificacion' and calculate the total quantity
     try:
-        summary_df = unfulfilled_bonifications_df.groupby('Cod. Bonificacion').agg(
+        summary_df = unfulfilled_bonifications_df.groupby(['Cod. Bonificacion','Sucursal']).agg(
             Total_Bonificada=('Cantidad Bonificada', 'sum'),
 
             
@@ -428,16 +437,16 @@ elif (st.session_state.rule_type_active=='Regla Simple' and st.session_state.bon
 
 
 if submittedTable:
-    #try:
+    try:
         with st.spinner("Procesando"):
                 df = pd.read_excel(uploaded_file,dtype={'Nro Documento': str, 'Cod. Cliente': str,'RUC/DNI': str})
                 if 'Emision' in df.columns:
                         df['Emision'] = pd.to_datetime(df['Emision'], errors='coerce')  # Convert to datetime format
                 # Clean the DataFrame by removing rows where 'Tipo Pedido' is NaN
                 if 'Tipo Pedido' in df.columns:
-                    df_dropNull = df.dropna(subset=['Tipo Pedido'])
+                    df = df.dropna(subset=['Tipo Pedido'])
                 # Filter by 'Proveedor'
-                dfProvider = df_dropNull[df_dropNull['Proveedor'] == supplierFile]
+                dfProvider = df[df['Proveedor'] == supplierFile]
                 # Filter by the selected month in 'Emision'
                 month_rows = dfProvider[dfProvider['Emision'].dt.month == monthFile]
                 st.subheader(f"Detalle de Venta del Mes de {monthSelect} ")
@@ -465,6 +474,6 @@ if submittedTable:
                 st.title(f"Bonificaciones fuera de Mecánica: {st.session_state.rule_type_active}")
                 st.write(unfulfilledBonifications)
                 st.write(unfulfilledBonifications_table)
-    #except:st.write('No se encontraron bonificaciones válidas')
+    except:st.write('No se encontraron bonificaciones válidas')
 
 
