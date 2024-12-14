@@ -453,7 +453,7 @@ if submittedTable:
                 formatedRows=month_rows.copy()
 
                 formatedRows['Fecha'] = formatedRows['Fecha'].dt.strftime('%Y-%m-%d')
-                formatedRows['P Unitario'] = formatedRows['P. Unitario'].apply(lambda x: f"S/ {x:.2f}")
+                formatedRows['P Unitario'] = formatedRows['P Unitario'].apply(lambda x: f"S/ {x:.2f}")
                 formatedRows['Total'] = formatedRows['Total'].apply(lambda x: f"S/ {x:.2f}")
                 formatedRows['Total'] = formatedRows['Total'].apply(lambda x: f"S/ {x:.2f}")
                 formatedRows['Descuento'] = formatedRows['Descuento'].apply(lambda x: f"S/ {x:.2f}")
