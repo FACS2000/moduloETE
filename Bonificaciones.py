@@ -207,9 +207,9 @@ def apply_bonification_rules_per_sale_simple(sales_df):
 
             for sale_date in sale_dates:
                 if (rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date()):
-                    # Convert Sucursal back to a string for use in summary and groupby
-                    rule['Sucursal'] = ','.join(rule['Sucursal'].split(","))
-                    if str(group['Sucursal'].iloc[0]) in rule['Sucursal']:
+                        # Convert Sucursal back to a string for use in summary and groupby
+                        rule['Sucursal'] = ','.join(rule['Sucursal'].split(","))
+                    #if str(group['Sucursal'].iloc[0]) in rule['Sucursal']:
                         base_product_sales = group[group['CodigoArt'] == rule['Codigo de Producto']]
                         total_base_quantity = base_product_sales['Cantidad'].sum()
                         bonification_multiplier = total_base_quantity // rule['Cantidad de Producto']
@@ -345,8 +345,8 @@ def apply_combined_bonification_rule_comb(sales_df):
                 for sale_date in sale_dates:
                     
                     if rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date():
-                        rule['Sucursal'] = ','.join(rule['Sucursal'].split(","))
-                        if str(group['Sucursal'].iloc[0]) in rule['Sucursal']:
+                            rule['Sucursal'] = ','.join(rule['Sucursal'].split(","))
+                        #if str(group['Sucursal'].iloc[0]) in rule['Sucursal']:
                             bonification_cost = rule['Costo']
                             # Distribuir la cantidad total de bonificación entre los productos de bonificación
                             for bonification_product_code in bonification_product_codes:
@@ -364,6 +364,7 @@ def apply_combined_bonification_rule_comb(sales_df):
                                     'Mecanica': f"{rule['Cantidad de Producto']} de {' y/o '.join(base_product_codes)} + {rule['Cantidad de Bonificacion']} de {bonification_product_code}",
                                     'Factor': rule['Factor']
                                 }
+                                st.write(bonification_entry)
 
                                 # Agregar solo si aún no se ha aplicado esta combinación en este documento
                                 if (nro_doc, bonification_product_code) not in applied_rules:
@@ -452,7 +453,7 @@ if submittedTable:
 
                 formatedRows=month_rows.copy()
 
-                # formatedRows['Fecha'] = formatedRows['Fecha'].dt.strftime('%Y-%m-%d')
+                formatedRows['Fecha'] = formatedRows['Fecha'].dt.strftime('%Y-%m-%d')
                 # formatedRows['P unitario'] = formatedRows['P unitario'].apply(lambda x: f"S/ {x:.2f}")
                 # formatedRows['Total'] = formatedRows['Total'].apply(lambda x: f"S/ {x:.2f}")
                 # formatedRows['Total'] = formatedRows['Total'].apply(lambda x: f"S/ {x:.2f}")
