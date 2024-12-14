@@ -203,7 +203,7 @@ def apply_bonification_rules_per_sale_simple(sales_df):
         applied_rules = []
 
         for index, rule in st.session_state.bonification_rules.sort_values(by='Cantidad de Producto', ascending=False).iterrows():
-            sale_dates = group['Emision'].dt.date.unique()
+            sale_dates = group['Fecha'].dt.date.unique()
 
             for sale_date in sale_dates:
                 if (rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date()):
@@ -265,7 +265,7 @@ def get_unfulfilled_bonifications_simple(sales_df):
         total_bruto_sum = group['Total Bruto'].sum()
         
         for index, rule in st.session_state.bonification_rules.sort_values(by='Cantidad de Producto', ascending=True).iterrows():
-            sale_dates = group['Emision'].dt.date.unique()
+            sale_dates = group['Fecha'].dt.date.unique()
             
             for sale_date in sale_dates:
                 if ((nro_doc, rule['Codigo de Bonificacion']) in applied_rules):
@@ -341,7 +341,7 @@ def apply_combined_bonification_rule_comb(sales_df):
             bonification_product_codes = rule['Codigo de Bonificacion'].split(',')
             total_base_quantity = group[group['Cod. Art.'].isin(base_product_codes)]['Cantidad'].sum()
             if total_base_quantity >= rule['Cantidad de Producto']:
-                sale_dates = group['Emision'].dt.date.unique()
+                sale_dates = group['Fecha'].dt.date.unique()
                 for sale_date in sale_dates:
                     
                     if rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date():
@@ -396,7 +396,7 @@ def get_unfulfilled_bonifications_comb(sales_df):
         # Track bonification product entries with Total Bruto = 0
         for index, rule in st.session_state.combination_bonification_rules.iterrows():
             # Check if the sale is within the rule's date range
-            sale_dates = group['Emision'].dt.date.unique()
+            sale_dates = group['Fecha'].dt.date.unique()
             for sale_date in sale_dates:
                 if rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date():
 
@@ -438,21 +438,21 @@ elif (st.session_state.rule_type_active=='Regla Simple' and st.session_state.bon
 if submittedTable:
 #    try:
         with st.spinner("Procesando"):
-                df = pd.read_excel(uploaded_file,dtype={'Nro Doc': str, 'Cod. Cliente': str,'RUC/DNI': str})
-                if 'Emision' in df.columns:
-                        df['Emision'] = pd.to_datetime(df['Emision'], errors='coerce')  # Convert to datetime format
+                df = pd.read_excel(uploaded_file,dtype={'Nro Doc': str})
+                if 'Fecha' in df.columns:
+                        df['Fecha'] = pd.to_datetime(df['Fecha'], errors='coerce')  # Convert to datetime format
                 # Clean the DataFrame by removing rows where 'Tipo Pedido' is NaN
                 if 'Tipo Pedido' in df.columns:
                     df = df.dropna(subset=['Tipo Pedido'])
                 # Filter by 'Proveedor'
-                dfProvider = df[df['Proveedor'] == supplierFile]
+                dfProvider = df[df['Pro'] == supplierFile]
                 # Filter by the selected month in 'Emision'
-                month_rows = dfProvider[dfProvider['Emision'].dt.month == monthFile]
+                month_rows = dfProvider[dfProvider['Fecha'].dt.month == monthFile]
                 st.subheader(f"Detalle de Venta del Mes de {monthSelect} ")
 
                 formatedRows=month_rows.copy()
 
-                formatedRows['Emision'] = formatedRows['Emision'].dt.strftime('%Y-%m-%d')
+                formatedRows['Fecha'] = formatedRows['Fecha'].dt.strftime('%Y-%m-%d')
                 formatedRows['P. Unitario'] = formatedRows['P. Unitario'].apply(lambda x: f"S/ {x:.2f}")
                 formatedRows['Total Bruto'] = formatedRows['Total Bruto'].apply(lambda x: f"S/ {x:.2f}")
                 formatedRows['Total'] = formatedRows['Total'].apply(lambda x: f"S/ {x:.2f}")
