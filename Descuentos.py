@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 from time import sleep
-st.set_page_config(layout='wide')
 
 if "uploader_key" not in st.session_state:
     st.session_state["uploader_key"] = 1
@@ -94,23 +93,7 @@ if uploaded_file is None or monthFile_Desc is None or supplierFile is None or st
 else:
     submittedTable = st.button("Mostrar Tabla", disabled=False,type='primary')
 st.sidebar.download_button(label=f'Descargar Formato',data=file_data_d,file_name=st.session_state.file_name_desc,type='primary')
-def apply_discount_rules(discount_df):
-    discount_summary = []                        
 
-    bonification_summary_df = pd.DataFrame(discount_summary)
-
-    total_bonification_per_rule = bonification_summary_df.groupby(
-        ['Codigo de Producto', 'Codigo de Bonificacion', 'Regla', 'Costo']
-    ).agg(
-        Cantidad=('Quantity', 'sum'),
-        Total=('Total', 'sum'),
-    ).reset_index()
-
-    total_bonification_per_rule['Costo'] = total_bonification_per_rule['Costo'].apply(lambda x: f"S/ {x:.2f}")
-
-    total_bonification_per_rule['Total'] = total_bonification_per_rule['Total'].apply(lambda x: f"S/ {x:.2f}")
-
-    return total_bonification_per_rule
 def check_discount_rules(sales_df):
     # Records that do not satisfy the rules
     non_compliant_records = []
@@ -125,11 +108,11 @@ def check_discount_rules(sales_df):
             # Filter sales matching the rule criteria
                 
                 # Calculate the discount percentage
-            total_bruto = float(sale['Total Bruto'])
-            descuento = float(sale['Descuento'])
+            total_bruto = float(sale['Total'])
+            descuento = float(sale['Dcto'])
             for base_product_code in base_product_codes:
                 if total_bruto != 0:  # Avoid division by zero
-                    calculated_discount_percentage = int((descuento / total_bruto) * 100)
+                    calculated_discount_percentage = int((descuento / (total_bruto+descuento)) * 100)
 
                     # Check if the calculated discount matches the expected discount
                     if calculated_discount_percentage != expected_discount_percentage:
@@ -137,7 +120,7 @@ def check_discount_rules(sales_df):
 
 
                         discount_entry={
-                            'Nro Documento': sale['Pedido'],  # Include sales document or ID
+                            'Nro Documento': sale['Nro Doc'],  # Include sales document or ID
                             'Sucursal': sale['Sucursal'],
                             'Codigo de Producto': rule['Codigo de Producto'],
                             'Descuento Esperado': expected_discount_percentage,
@@ -145,9 +128,9 @@ def check_discount_rules(sales_df):
                             'Total Bruto': total_bruto,
                             'Descuento': descuento
                         }
-                        if (sale['Pedido']) not in applied_rules:
+                        if (sale['Nro Doc']) not in applied_rules:
                             non_compliant_records.append(discount_entry)
-                            applied_rules.append(sale['Pedido'])
+                            applied_rules.append(sale['Nro Doc'])
 
 
     # Create a DataFrame for non-compliant records
@@ -157,30 +140,29 @@ def check_discount_rules(sales_df):
 
 
 if submittedTable:
-#    try:
+    try:
         with st.spinner("Procesando"):
-                df = pd.read_excel(uploaded_file,dtype={'Nro Doc': str,'Descuento':float})
-                if 'Emision' in df.columns:
-                        df['Emision'] = pd.to_datetime(df['Emision'], errors='coerce')  # Convert to datetime format
+                df = pd.read_excel(uploaded_file,dtype={'Nro Doc': str,'Dcto':float})
+                if 'Fecha' in df.columns:
+                        df['Fecha'] = pd.to_datetime(df['Fecha'], errors='coerce')  # Convert to datetime format
                 # Clean the DataFrame by removing rows where 'Tipo Pedido' is NaN
-                if 'Tipo Pedido' in df.columns:
-                    df = df.dropna(subset=['Tipo Pedido'])
+                
                 # Filter by 'Proveedor'
-                df = df[df['Proveedor'] == supplierFile]
+                df = df[df['Pro'] == supplierFile]
                 # Filter by the selected month in 'Emision'
-                df = df[df['Emision'].dt.month == monthFile_Desc]
+                df = df[df['Fecha'].dt.month == monthFile_Desc]
                 st.subheader(f"Detalle de Ventas del Mes de {monthSelect} ")
 
                 formatedRows=df.copy()
-                formatedRows=formatedRows[formatedRows['Descuento'] > 0]
-                formatedRows['Emision'] = formatedRows['Emision'].dt.strftime('%Y-%m-%d')
-                formatedRows['P. Unitario'] = formatedRows['P. Unitario'].apply(lambda x: f"S/ {x:.2f}")
-                #formatedRows['Total Bruto'] = formatedRows['Total Bruto'].apply(lambda x: f"S/ {x:.2f}")
-                formatedRows['Total'] = formatedRows['Total'].apply(lambda x: f"S/ {x:.2f}")
+                formatedRows=formatedRows[formatedRows['Dcto'] > 0]
+                formatedRows['Fecha'] = formatedRows['Fecha'].dt.strftime('%Y-%m-%d')
+                # formatedRows['P unitario'] = formatedRows['P unitario'].apply(lambda x: f"S/ {x:.2f}")
+                # #formatedRows['Total Bruto'] = formatedRows['Total Bruto'].apply(lambda x: f"S/ {x:.2f}")
+                # formatedRows['Total'] = formatedRows['Total'].apply(lambda x: f"S/ {x:.2f}")
                 #formatedRows['Descuento'] = formatedRows['Descuento'].apply(lambda x: f"S/ {x:.2f}")
 
                 st.write(formatedRows)
                 st.subheader(f"Detalle de Descuentos del Mes de {monthSelect} ")
                 discount_table=check_discount_rules(formatedRows)
                 st.write(discount_table)
-#    except:st.write('No se encontraron descuentos válidos')
+    except:st.write('No se encontraron descuentos válidos')

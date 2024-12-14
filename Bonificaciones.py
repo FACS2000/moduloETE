@@ -4,7 +4,7 @@ import numpy as np
 from datetime import datetime
 from time import sleep
 
-st.set_page_config(layout='wide')
+
 submittedTable=None
 uploaded_rules_file =None
 uploaded_combined_rules_file=None
@@ -53,7 +53,6 @@ if 'combination_bonification_rules' not in st.session_state:
                 'Fecha Fin',
                 'Sucursal'
                 ])
-
 # File uploader for Excel
 uploaded_file = st.sidebar.file_uploader('Suba el archivo de data general', type='xlsx',label_visibility='collapsed')
 #Month select
@@ -208,8 +207,8 @@ def apply_bonification_rules_per_sale_simple(sales_df):
             for sale_date in sale_dates:
                 if (rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date()):
                         # Convert Sucursal back to a string for use in summary and groupby
-                        rule['Sucursal'] = ','.join(rule['Sucursal'].split(","))
-                    #if str(group['Sucursal'].iloc[0]) in rule['Sucursal']:
+                    rule['Sucursal'] = ','.join(rule['Sucursal'].split(","))
+                    if str(group['Sucursal'].iloc[0]) in rule['Sucursal']:
                         base_product_sales = group[group['CodigoArt'] == rule['Codigo de Producto']]
                         total_base_quantity = base_product_sales['Cantidad'].sum()
                         bonification_multiplier = total_base_quantity // rule['Cantidad de Producto']
@@ -345,8 +344,9 @@ def apply_combined_bonification_rule_comb(sales_df):
                 for sale_date in sale_dates:
                     
                     if rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date():
-                            rule['Sucursal'] = ','.join(rule['Sucursal'].split(","))
-                        #if str(group['Sucursal'].iloc[0]) in rule['Sucursal']:
+                        rule['Sucursal'] = ','.join(rule['Sucursal'].split(","))
+                            
+                        if str(group['Sucursal'].iloc[0]) in rule['Sucursal']:
                             bonification_cost = rule['Costo']
                             # Distribuir la cantidad total de bonificación entre los productos de bonificación
                             for bonification_product_code in bonification_product_codes:
@@ -437,9 +437,9 @@ elif (st.session_state.rule_type_active=='Regla Simple' and st.session_state.bon
 
 
 if submittedTable:
-#    try:
+    try:
         with st.spinner("Procesando"):
-                df = pd.read_excel(uploaded_file,dtype={'Nro Doc': str})
+                df = pd.read_excel(uploaded_file,dtype={'Nro Doc': str,'Sucursal': str})
                 if 'Fecha' in df.columns:
                         df['Fecha'] = pd.to_datetime(df['Fecha'], errors='coerce')  # Convert to datetime format
                 # Clean the DataFrame by removing rows where 'Tipo Pedido' is NaN
@@ -471,9 +471,11 @@ if submittedTable:
                     unfulfilledBonifications_table = get_unfulfilled_bonifications_table_simple(unfulfilledBonifications)
                 st.title(f"Resumen de Bonificaciones por Mecánica: {st.session_state.rule_type_active}")
                 st.write(bonificationTable)
-                st.title(f"Bonificaciones fuera de Mecánica: {st.session_state.rule_type_active}")
-                st.write(unfulfilledBonifications)
-                st.write(unfulfilledBonifications_table)
-#    except:st.write('No se encontraron bonificaciones válidas')
+                
+                if not unfulfilledBonifications.empty:
+                    st.title(f"Bonificaciones fuera de Mecánica: {st.session_state.rule_type_active}")
+                    st.write(unfulfilledBonifications)
+                    st.write(unfulfilledBonifications_table)
+    except:st.write('No se encontraron bonificaciones válidas')
 
 
