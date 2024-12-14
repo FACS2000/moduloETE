@@ -199,7 +199,7 @@ elif st.session_state.rule_type_active=='Regla Combinada':
 def apply_bonification_rules_per_sale_simple(sales_df):
     bonification_summary = []
 
-    for nro_doc, group in sales_df.groupby('Nro Documento'):
+    for nro_doc, group in sales_df.groupby('Nro Doc'):
         applied_rules = []
 
         for index, rule in st.session_state.bonification_rules.sort_values(by='Cantidad de Producto', ascending=False).iterrows():
@@ -222,7 +222,7 @@ def apply_bonification_rules_per_sale_simple(sales_df):
 
                             bonification_entry = {
                                 'Sucursal': rule['Sucursal'],  # Sucursal is a string here
-                                'Nro Documento': nro_doc,
+                                'Nro Doc': nro_doc,
                                 'Codigo de Producto': rule['Codigo de Producto'],
                                 'Codigo de Bonificacion': rule['Codigo de Bonificacion'],
                                 'Quantity': total_bonification_quantity,
@@ -259,9 +259,9 @@ def apply_bonification_rules_per_sale_simple(sales_df):
 def get_unfulfilled_bonifications_simple(sales_df):
     # Extract records of bonification products where Total Bruto = 0
     unfulfilled_records = []
-    applied_rules = set()  # Track processed (Nro Documento, Codigo de Bonificacion)
+    applied_rules = set()  # Track processed
 
-    for nro_doc, group in sales_df.groupby('Nro Documento'):
+    for nro_doc, group in sales_df.groupby('Nro Doc'):
         total_bruto_sum = group['Total Bruto'].sum()
         
         for index, rule in st.session_state.bonification_rules.sort_values(by='Cantidad de Producto', ascending=True).iterrows():
@@ -269,7 +269,7 @@ def get_unfulfilled_bonifications_simple(sales_df):
             
             for sale_date in sale_dates:
                 if ((nro_doc, rule['Codigo de Bonificacion']) in applied_rules):
-                    # Skip this rule if it's already applied or skipped for the same Nro Documento and Bonificacion
+                    # Skip this rule if it's already applied or skipped for the same Nro Doc and Bonificacion
                     continue
                 if (rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date()):
                     # Base products and bonification products
@@ -283,7 +283,7 @@ def get_unfulfilled_bonifications_simple(sales_df):
                     if total_base_quantity == 0 and total_bruto_sum ==0:
                         for _, bonification_row in bonification_product_sales.iterrows():
                             unfulfilled_records_entry = {
-                                'Nro Documento': nro_doc,
+                                'Nro Doc': nro_doc,
                                 'Sucursal': bonification_row['Sucursal'],  # Include Sucursal
                                 'Cantidad Vendida': total_base_quantity,
                                 'Cod. Bonificacion': bonification_row['Cod. Art.'],
@@ -296,7 +296,7 @@ def get_unfulfilled_bonifications_simple(sales_df):
                         for _, bonification_row in bonification_product_sales.iterrows():
                             if (nro_doc, bonification_product_code) not in applied_rules:
                                 unfulfilled_records_entry = {
-                                    'Nro Documento': nro_doc,
+                                    'Nro Doc': nro_doc,
                                     'Sucursal': bonification_row['Sucursal'],  # Include Sucursal
                                     'Cod. Producto': rule['Codigo de Producto'],
                                     'Cantidad Vendida': total_base_quantity,
@@ -305,7 +305,6 @@ def get_unfulfilled_bonifications_simple(sales_df):
                                     'Mecanica': f"{rule['Cantidad de Producto']} de {rule['Codigo de Producto']} + {rule['Cantidad de Bonificacion']} de {rule['Codigo de Bonificacion']}"
                                 }
                                 unfulfilled_records.append(unfulfilled_records_entry)
-                    # Mark this `Nro Documento` and `Codigo de Bonificacion` as processed
                     applied_rules.add((nro_doc, bonification_product_code))
 
     unfulfilled_records_df = pd.DataFrame(unfulfilled_records)
@@ -333,7 +332,7 @@ def get_unfulfilled_bonifications_table_simple(unfulfilled_bonifications_df):
 def apply_combined_bonification_rule_comb(sales_df):
     bonification_summary = []
 
-    for nro_doc, group in sales_df.groupby('Nro Documento'):
+    for nro_doc, group in sales_df.groupby('Nro Doc'):
         applied_rules = []
 
         for index, rule in st.session_state.combination_bonification_rules.iterrows():
@@ -356,7 +355,7 @@ def apply_combined_bonification_rule_comb(sales_df):
                                 total_bonification_quantity = bonification_product_sales['Cantidad'].sum()
                                 bonification_entry = {
                                     'Sucursal': rule['Sucursal'],
-                                    'Nro Documento': nro_doc,
+                                    'Nro Doc': nro_doc,
                                     'Codigo de Producto': ','.join(base_product_codes),
                                     'Codigo de Bonificacion': bonification_product_code,
                                     'Quantity': total_bonification_quantity,
@@ -392,7 +391,7 @@ def get_unfulfilled_bonifications_comb(sales_df):
     unfulfilled_records = []  # List to store records that don't fulfill the rule
     applied_rules = set() 
     # Iterate over each sale document
-    for nro_doc, group in sales_df.groupby('Nro Documento'):
+    for nro_doc, group in sales_df.groupby('Nro Doc'):
 
         # Track bonification product entries with Total Bruto = 0
         for index, rule in st.session_state.combination_bonification_rules.iterrows():
@@ -415,7 +414,7 @@ def get_unfulfilled_bonifications_comb(sales_df):
                         # Append each bonification product record that doesn't fulfill the rule
                         for _, bonification_row in bonification_product_sales.iterrows():
                             unfulfilled_records.append({
-                                'Nro Documento': nro_doc,
+                                'Nro Doc': nro_doc,
                                 'Cod. Producto': rule['Codigo de Producto'],
                                 'Cantidad Vendida': total_base_quantity,
                                 'Cod. Bonificacion': bonification_row['Cod. Art.'],
@@ -439,7 +438,7 @@ elif (st.session_state.rule_type_active=='Regla Simple' and st.session_state.bon
 if submittedTable:
     try:
         with st.spinner("Procesando"):
-                df = pd.read_excel(uploaded_file,dtype={'Nro Documento': str, 'Cod. Cliente': str,'RUC/DNI': str})
+                df = pd.read_excel(uploaded_file,dtype={'Nro Doc': str, 'Cod. Cliente': str,'RUC/DNI': str})
                 if 'Emision' in df.columns:
                         df['Emision'] = pd.to_datetime(df['Emision'], errors='coerce')  # Convert to datetime format
                 # Clean the DataFrame by removing rows where 'Tipo Pedido' is NaN

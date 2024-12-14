@@ -157,9 +157,9 @@ def check_discount_rules(sales_df):
 
 
 if submittedTable:
-#    try:
+    try:
         with st.spinner("Procesando"):
-                df = pd.read_excel(uploaded_file,dtype={'Nro Documento': str, 'Cod. Cliente': str,'Descuento':float})
+                df = pd.read_excel(uploaded_file,dtype={'Nro Doc': str,'Descuento':float})
                 if 'Emision' in df.columns:
                         df['Emision'] = pd.to_datetime(df['Emision'], errors='coerce')  # Convert to datetime format
                 # Clean the DataFrame by removing rows where 'Tipo Pedido' is NaN
@@ -183,4 +183,4 @@ if submittedTable:
                 st.subheader(f"Detalle de Descuentos del Mes de {monthSelect} ")
                 discount_table=check_discount_rules(formatedRows)
                 st.write(discount_table)
-#    except:st.write('No se encontraron bonificaciones válidas')
+    except:st.write('No se encontraron bonificaciones válidas')
