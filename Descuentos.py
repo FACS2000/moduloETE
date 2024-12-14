@@ -122,11 +122,11 @@ def check_discount_rules(sales_df):
                         discount_entry={
                             'Nro Documento': sale['Nro Doc'],  # Include sales document or ID
                             'Sucursal': sale['Sucursal'],
-                            'Codigo de Producto': rule['Codigo de Producto'],
-                            'Descuento Esperado': expected_discount_percentage,
+                            'Codigo de Producto': sale['CodigoArt'],
+                            'Descuento Esperado%': expected_discount_percentage,
                             'Descuento Actual %': calculated_discount_percentage,
                             'Total Bruto': total_bruto,
-                            'Descuento': descuento
+                            'Descuento S/.': descuento
                         }
                         if (sale['Nro Doc']) not in applied_rules:
                             non_compliant_records.append(discount_entry)
@@ -136,7 +136,7 @@ def check_discount_rules(sales_df):
     # Create a DataFrame for non-compliant records
     non_compliant_df = pd.DataFrame(non_compliant_records)
 
-    return non_compliant_df
+    return non_compliant_df.sort_values('Codigo de Producto')
 
 
 if submittedTable:
