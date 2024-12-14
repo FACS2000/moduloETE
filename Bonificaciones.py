@@ -210,12 +210,12 @@ def apply_bonification_rules_per_sale_simple(sales_df):
                     # Convert Sucursal back to a string for use in summary and groupby
                     rule['Sucursal'] = ','.join(rule['Sucursal'].split(","))
                     if str(group['Sucursal'].iloc[0]) in rule['Sucursal']:
-                        base_product_sales = group[group['Cod. Art.'] == rule['Codigo de Producto']]
+                        base_product_sales = group[group['CodigoArt'] == rule['Codigo de Producto']]
                         total_base_quantity = base_product_sales['Cantidad'].sum()
                         bonification_multiplier = total_base_quantity // rule['Cantidad de Producto']
 
                         if total_base_quantity >= rule['Cantidad de Producto'] and bonification_multiplier > 0 and rule['Codigo de Bonificacion'] not in applied_rules:
-                            bonification_product_sales = group[group['Cod. Art.'] == rule['Codigo de Bonificacion']]
+                            bonification_product_sales = group[group['CodigoArt'] == rule['Codigo de Bonificacion']]
                             total_bonification_quantity = bonification_product_sales['Cantidad'].sum()
                             bonification_cost = rule['Costo']
                             factor = rule['Factor']
@@ -273,9 +273,9 @@ def get_unfulfilled_bonifications_simple(sales_df):
                     continue
                 if (rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date()):
                     # Base products and bonification products
-                    base_product_sales = group[group['Cod. Art.'] == rule['Codigo de Producto']]
+                    base_product_sales = group[group['CodigoArt'] == rule['Codigo de Producto']]
                     bonification_product_sales = group[
-                        (group['Cod. Art.'] == rule['Codigo de Bonificacion']) & (group['Total'] == 0)
+                        (group['CodigoArt'] == rule['Codigo de Bonificacion']) & (group['Total'] == 0)
                     ]
                     total_base_quantity = base_product_sales['Cantidad'].sum()
                     bonification_product_code = rule['Codigo de Bonificacion']
@@ -286,7 +286,7 @@ def get_unfulfilled_bonifications_simple(sales_df):
                                 'Nro Doc': nro_doc,
                                 'Sucursal': bonification_row['Sucursal'],  # Include Sucursal
                                 'Cantidad Vendida': total_base_quantity,
-                                'Cod. Bonificacion': bonification_row['Cod. Art.'],
+                                'Cod. Bonificacion': bonification_row['CodigoArt'],
                                 'Cantidad Bonificada': bonification_row['Cantidad'],
                                 # Still include the mechanic's quantity
                             }
@@ -300,7 +300,7 @@ def get_unfulfilled_bonifications_simple(sales_df):
                                     'Sucursal': bonification_row['Sucursal'],  # Include Sucursal
                                     'Cod. Producto': rule['Codigo de Producto'],
                                     'Cantidad Vendida': total_base_quantity,
-                                    'Cod. Bonificacion': bonification_row['Cod. Art.'],
+                                    'Cod. Bonificacion': bonification_row['CodigoArt'],
                                     'Cantidad Bonificada': bonification_row['Cantidad'],                                    
                                     'Mecanica': f"{rule['Cantidad de Producto']} de {rule['Codigo de Producto']} + {rule['Cantidad de Bonificacion']} de {rule['Codigo de Bonificacion']}"
                                 }
@@ -339,7 +339,7 @@ def apply_combined_bonification_rule_comb(sales_df):
             # Dividir los códigos de productos base y bonificación en listas
             base_product_codes = rule['Codigo de Producto'].split(',')
             bonification_product_codes = rule['Codigo de Bonificacion'].split(',')
-            total_base_quantity = group[group['Cod. Art.'].isin(base_product_codes)]['Cantidad'].sum()
+            total_base_quantity = group[group['CodigoArt'].isin(base_product_codes)]['Cantidad'].sum()
             if total_base_quantity >= rule['Cantidad de Producto']:
                 sale_dates = group['Fecha'].dt.date.unique()
                 for sale_date in sale_dates:
@@ -351,7 +351,7 @@ def apply_combined_bonification_rule_comb(sales_df):
                             # Distribuir la cantidad total de bonificación entre los productos de bonificación
                             for bonification_product_code in bonification_product_codes:
                                 
-                                bonification_product_sales = group[group['Cod. Art.'] == bonification_product_code]
+                                bonification_product_sales = group[group['CodigoArt'] == bonification_product_code]
                                 total_bonification_quantity = bonification_product_sales['Cantidad'].sum()
                                 bonification_entry = {
                                     'Sucursal': rule['Sucursal'],
@@ -401,9 +401,9 @@ def get_unfulfilled_bonifications_comb(sales_df):
                 if rule['Fecha Inicio'].date() <= sale_date <= rule['Fecha Fin'].date():
 
                     # Filter for base products and bonification products in the sale
-                    base_product_sales = group[group['Cod. Art.'].isin(rule['Codigo de Producto'].split(','))]
+                    base_product_sales = group[group['CodigoArt'].isin(rule['Codigo de Producto'].split(','))]
                     bonification_product_sales = group[
-                        (group['Cod. Art.'].isin(rule['Codigo de Bonificacion'].split(','))) & (group['Total'] == 0)
+                        (group['CodigoArt'].isin(rule['Codigo de Bonificacion'].split(','))) & (group['Total'] == 0)
                     ]
 
                     # Calculate the total base quantity in this sale
@@ -417,7 +417,7 @@ def get_unfulfilled_bonifications_comb(sales_df):
                                 'Nro Doc': nro_doc,
                                 'Cod. Producto': rule['Codigo de Producto'],
                                 'Cantidad Vendida': total_base_quantity,
-                                'Cod. Bonificacion': bonification_row['Cod. Art.'],
+                                'Cod. Bonificacion': bonification_row['CodigoArt'],
                                 'Cantidad Bonificada': bonification_row['Cantidad'],
                                 'Mecanica': f"{rule['Cantidad de Producto']} de {rule['Codigo de Producto']} + {rule['Cantidad de Bonificacion']} de {rule['Codigo de Bonificacion']}"
                             })
@@ -453,7 +453,7 @@ if submittedTable:
                 formatedRows=month_rows.copy()
 
                 formatedRows['Fecha'] = formatedRows['Fecha'].dt.strftime('%Y-%m-%d')
-                formatedRows['P Unitario'] = formatedRows['P Unitario'].apply(lambda x: f"S/ {x:.2f}")
+                formatedRows['P unitario'] = formatedRows['P unitario'].apply(lambda x: f"S/ {x:.2f}")
                 formatedRows['Total'] = formatedRows['Total'].apply(lambda x: f"S/ {x:.2f}")
                 formatedRows['Total'] = formatedRows['Total'].apply(lambda x: f"S/ {x:.2f}")
                 formatedRows['Dcto'] = formatedRows['Dcto'].apply(lambda x: f"S/ {x:.2f}")
