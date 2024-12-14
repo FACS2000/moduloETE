@@ -436,7 +436,7 @@ elif (st.session_state.rule_type_active=='Regla Simple' and st.session_state.bon
 
 
 if submittedTable:
-    try:
+#    try:
         with st.spinner("Procesando"):
                 df = pd.read_excel(uploaded_file,dtype={'Nro Doc': str, 'Cod. Cliente': str,'RUC/DNI': str})
                 if 'Emision' in df.columns:
@@ -473,6 +473,6 @@ if submittedTable:
                 st.title(f"Bonificaciones fuera de Mecánica: {st.session_state.rule_type_active}")
                 st.write(unfulfilledBonifications)
                 st.write(unfulfilledBonifications_table)
-    except:st.write('No se encontraron bonificaciones válidas')
+#    except:st.write('No se encontraron bonificaciones válidas')
 
 
