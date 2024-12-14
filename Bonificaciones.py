@@ -315,7 +315,7 @@ def get_unfulfilled_bonifications_simple(sales_df):
 def get_unfulfilled_bonifications_table_simple(unfulfilled_bonifications_df):
     # Group by 'Codigo de Bonificacion' and calculate the total quantity
     try:
-        summary_df = unfulfilled_bonifications_df.groupby(['Cod. Bonificacion','Sucursal']).agg(
+        summary_df = unfulfilled_bonifications_df.groupby('Cod. Bonificacion').agg(
             Total_Bonificada=('Cantidad Bonificada', 'sum'),
 
             
