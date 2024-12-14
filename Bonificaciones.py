@@ -364,7 +364,6 @@ def apply_combined_bonification_rule_comb(sales_df):
                                     'Mecanica': f"{rule['Cantidad de Producto']} de {' y/o '.join(base_product_codes)} + {rule['Cantidad de Bonificacion']} de {bonification_product_code}",
                                     'Factor': rule['Factor']
                                 }
-                                st.write(bonification_entry)
 
                                 # Agregar solo si aún no se ha aplicado esta combinación en este documento
                                 if (nro_doc, bonification_product_code) not in applied_rules:
