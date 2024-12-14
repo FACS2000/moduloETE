@@ -372,19 +372,20 @@ def apply_combined_bonification_rule_comb(sales_df):
     
     # Convertir el resumen de bonificaciones en un DataFrame
     bonification_summary_df = pd.DataFrame(bonification_summary)
-
+    if not bonification_summary_df.empty:
     # Agregar totales de cantidad y valor por regla
-    total_bonification_per_rule = bonification_summary_df.groupby(
-        ['Sucursal','Codigo de Producto', 'Codigo de Bonificacion', 'Mecanica', 'Costo', 'Factor']
-    ).agg(
-        Cantidad=('Quantity', 'sum'),
-        Total=('Total', 'sum'),
-    ).reset_index()
-    #total_bonification_per_rule['Costo'] = total_bonification_per_rule['Costo'].apply(lambda x: f"S/ {x:.2f}")
+        total_bonification_per_rule = bonification_summary_df.groupby(
+            ['Sucursal','Codigo de Producto', 'Codigo de Bonificacion', 'Mecanica', 'Costo', 'Factor']
+        ).agg(
+            Cantidad=('Quantity', 'sum'),
+            Total=('Total', 'sum'),
+        ).reset_index()
+        #total_bonification_per_rule['Costo'] = total_bonification_per_rule['Costo'].apply(lambda x: f"S/ {x:.2f}")
 
-    #total_bonification_per_rule['Total'] = total_bonification_per_rule['Total'].apply(lambda x: f"S/ {x:.2f}")
-
-    return total_bonification_per_rule
+        #total_bonification_per_rule['Total'] = total_bonification_per_rule['Total'].apply(lambda x: f"S/ {x:.2f}")
+        
+        return total_bonification_per_rule
+    else: return bonification_summary_df
 
 ############# Fuera de Regla ####################
 def get_unfulfilled_bonifications_comb(sales_df):
