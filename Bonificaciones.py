@@ -245,8 +245,8 @@ def apply_bonification_rules_per_sale_simple(sales_df):
         Total=('Total', 'sum'),
     ).reset_index()
 
-    total_bonification_per_rule['Costo'] = total_bonification_per_rule['Costo'].apply(lambda x: f"S/ {x:.2f}")
-    total_bonification_per_rule['Total'] = total_bonification_per_rule['Total'].apply(lambda x: f"S/ {x:.2f}")
+    #total_bonification_per_rule['Costo'] = total_bonification_per_rule['Costo'].apply(lambda x: f"S/ {x:.2f}")
+    #total_bonification_per_rule['Total'] = total_bonification_per_rule['Total'].apply(lambda x: f"S/ {x:.2f}")
 
     # Sort the resulting DataFrame by Sucursal in ascending order
     total_bonification_per_rule = total_bonification_per_rule.sort_values(by='Sucursal', ascending=True).reset_index(drop=True)
@@ -380,9 +380,9 @@ def apply_combined_bonification_rule_comb(sales_df):
         Cantidad=('Quantity', 'sum'),
         Total=('Total', 'sum'),
     ).reset_index()
-    total_bonification_per_rule['Costo'] = total_bonification_per_rule['Costo'].apply(lambda x: f"S/ {x:.2f}")
+    #total_bonification_per_rule['Costo'] = total_bonification_per_rule['Costo'].apply(lambda x: f"S/ {x:.2f}")
 
-    total_bonification_per_rule['Total'] = total_bonification_per_rule['Total'].apply(lambda x: f"S/ {x:.2f}")
+    #total_bonification_per_rule['Total'] = total_bonification_per_rule['Total'].apply(lambda x: f"S/ {x:.2f}")
 
     return total_bonification_per_rule
 
@@ -452,11 +452,11 @@ if submittedTable:
 
                 formatedRows=month_rows.copy()
 
-                formatedRows['Fecha'] = formatedRows['Fecha'].dt.strftime('%Y-%m-%d')
-                formatedRows['P unitario'] = formatedRows['P unitario'].apply(lambda x: f"S/ {x:.2f}")
-                formatedRows['Total'] = formatedRows['Total'].apply(lambda x: f"S/ {x:.2f}")
-                formatedRows['Total'] = formatedRows['Total'].apply(lambda x: f"S/ {x:.2f}")
-                formatedRows['Dcto'] = formatedRows['Dcto'].apply(lambda x: f"S/ {x:.2f}")
+                # formatedRows['Fecha'] = formatedRows['Fecha'].dt.strftime('%Y-%m-%d')
+                # formatedRows['P unitario'] = formatedRows['P unitario'].apply(lambda x: f"S/ {x:.2f}")
+                # formatedRows['Total'] = formatedRows['Total'].apply(lambda x: f"S/ {x:.2f}")
+                # formatedRows['Total'] = formatedRows['Total'].apply(lambda x: f"S/ {x:.2f}")
+                # formatedRows['Dcto'] = formatedRows['Dcto'].apply(lambda x: f"S/ {x:.2f}")
 
                 st.write(formatedRows)
                 if st.session_state.rule_type_active=='Regla Simple':
