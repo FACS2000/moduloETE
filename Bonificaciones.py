@@ -66,7 +66,7 @@ monthSelect = st.sidebar.selectbox(
 if monthSelect is not None:
     monthFile = month_dict[monthSelect]
 
-supplierFile= st.sidebar.selectbox('Proveedor',('AND','ETE','4LO','GUR','PPN','VER','QLP','TCM','PFA','ALT','ADA','BDF','QSZ','COL','ALI','NPU','SAL','K&M','SQL','SAN','ZAI',
+supplierFile= st.sidebar.selectbox('Proveedor',('AND','ETE','SAY','4LO','GUR','PPN','VER','QLP','TCM','PFA','ALT','ADA','BDF','QSZ','COL','ALI','NPU','SAL','K&M','SQL','SAN','ZAI',
 'ZUR','NES','UNI','PRY','UNS','FIN','MOL','RSA','COR','COP','GLO','JHO','CDP'),placeholder="Escoja un Proveedor",index=None)
 
 st.title("Gestión de Reglas (Bonificaciones)")
