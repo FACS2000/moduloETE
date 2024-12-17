@@ -39,7 +39,7 @@ if monthSelect is not None:
     monthFile_Desc = month_dict[monthSelect]
 
 supplierFile= st.sidebar.selectbox('Proveedor',('AND','ETE','4LO','GUR','PPN','VER','QLP','TCM','PFA','ALT','ADA','BDF','QSZ','COL','ALI','NPU','SAL','K&M','SQL','SAN','ZAI',
-'ZUR','NES','UNI','PRY','UNS','FIN','MOL','RSA','COR','COP','GLO','JHO','CDP'),placeholder="Escoja un Proveedor",index=None)
+'ZUR','NES','UNI','PRY','UNS','FIN','MOL','RSA','COR','COP','GLO','JHO','CDP','SAY'),placeholder="Escoja un Proveedor",index=None)
 st.title("Gestión de Reglas (Descuentos)")
 uploaded_rules_file_desc = st.sidebar.file_uploader('Suba archivo de reglas de descuento', type='xlsx',key=st.session_state["uploader_key_desc"])
 
