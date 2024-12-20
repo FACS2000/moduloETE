@@ -281,19 +281,21 @@ def get_unfulfilled_bonifications_simple(sales_df):
                     # If total_base_quantity is 0, add a minimal entry without comparison
                     if total_base_quantity == 0 and total_bruto_sum ==0:
                         for _, bonification_row in bonification_product_sales.iterrows():
-                            unfulfilled_records_entry = {
-                                'Codigo': nro_doc,
-                                'Sucursal': bonification_row['Sucursal'],  # Include Sucursal
-                                'Cantidad Vendida': total_base_quantity,
-                                'Cod. Bonificacion': bonification_row['CodigoArt'],
-                                'Cantidad Bonificada': bonification_row['Cantidad'],
-                                # Still include the mechanic's quantity
-                            }
-                            unfulfilled_records.append(unfulfilled_records_entry)
+                            if (nro_doc) not in applied_rules:
+                                unfulfilled_records_entry = {
+                                    'Codigo': nro_doc,
+                                    'Sucursal': bonification_row['Sucursal'],  # Include Sucursal
+                                    'Cantidad Vendida': total_base_quantity,
+                                    'Cod. Bonificacion': bonification_row['CodigoArt'],
+                                    'Cantidad Bonificada': bonification_row['Cantidad'],
+                                    # Still include the mechanic's quantity
+                                }
+                                unfulfilled_records.append(unfulfilled_records_entry)
+                                applied_rules.add((nro_doc))
                     # If base quantity is insufficient but there is a bonification product
                     elif total_base_quantity < rule['Cantidad de Producto'] and not bonification_product_sales.empty:
                         for _, bonification_row in bonification_product_sales.iterrows():
-                            if (nro_doc, bonification_product_code) not in applied_rules:
+                            if (nro_doc) not in applied_rules:
                                 unfulfilled_records_entry = {
                                     'Codigo': nro_doc,
                                     'Sucursal': bonification_row['Sucursal'],  # Include Sucursal
@@ -304,7 +306,8 @@ def get_unfulfilled_bonifications_simple(sales_df):
                                     'Mecanica': f"{rule['Cantidad de Producto']} de {rule['Codigo de Producto']} + {rule['Cantidad de Bonificacion']} de {rule['Codigo de Bonificacion']}"
                                 }
                                 unfulfilled_records.append(unfulfilled_records_entry)
-                    applied_rules.add((nro_doc, bonification_product_code))
+                                applied_rules.add((nro_doc))
+                    
 
     unfulfilled_records_df = pd.DataFrame(unfulfilled_records)
 
@@ -421,7 +424,7 @@ def get_unfulfilled_bonifications_comb(sales_df):
                                     'Cantidad Vendida': total_base_quantity,
                                     'Cod. Bonificacion': bonification_row['CodigoArt'],
                                     'Cantidad Bonificada': bonification_row['Cantidad'],
-                                    'Mecanica': f'No Corresponde{bonification_row['CodigoArt']}'
+                                    'Mecanica': f'No Corresponde: {bonification_row['CodigoArt']}'
                                     # Still include the mechanic's quantity
                                 }
                                 unfulfilled_records.append(unfulfilled_records_entry)
